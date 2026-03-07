@@ -52,6 +52,8 @@ In Codex CLI, EVO is implemented as a skill folder plus an agent definition and 
 
 EVO is fully automated only when Codex can execute local commands and both required skills are installed.
 
+> Warning: choose one install scope per skill (`project` or `global`), not both. Installing the same skill in both places creates duplicate copies and can cause stale/conflicting behavior.
+
 #### Step 1: Install SWI-Prolog (required by `prolog-runner`)
 
 `prolog-runner` shells out to SWI-Prolog (`swipl`). Install it and make sure `swipl` is on your `PATH`.
@@ -76,7 +78,34 @@ You must have **both** skill folders installed for the automated EVO workflow:
 - `evo` (the workflow + harness runner)
 - `prolog-runner` (executes `swipl` and returns JSON bindings)
 
-##### Global install (recommended)
+##### Project-level install (recommended)
+
+From this repo, copy these folders into your project root:
+
+- `.codex/skills/evo/`
+- `.codex/skills/prolog-runner/`
+
+Example copy commands:
+
+- Windows (PowerShell, run from the repo root):
+
+```powershell
+New-Item -ItemType Directory -Force -Path ".\.codex\skills" | Out-Null
+Copy-Item -Recurse -Force ".\.codex\skills\evo" ".\.codex\skills\"
+Copy-Item -Recurse -Force ".\.codex\skills\prolog-runner" ".\.codex\skills\"
+```
+
+- macOS/Linux (bash/zsh, run from the repo root):
+
+```bash
+mkdir -p ./.codex/skills
+cp -R ./.codex/skills/evo ./.codex/skills/
+cp -R ./.codex/skills/prolog-runner ./.codex/skills/
+```
+
+Restart Codex CLI after installing/updating skills.
+
+##### Global-level install (optional)
 
 Install into your global Codex skills directory:
 
@@ -110,9 +139,7 @@ cp -R ./.codex/skills/evo ~/.codex/skills/
 cp -R ./.codex/skills/prolog-runner ~/.codex/skills/
 ```
 
-Restart Codex CLI after installing/updating skills.
-
-#### Step 3: Confirm global install
+#### Step 3: Confirm install
 
 After installing, you should have:
 
@@ -127,7 +154,7 @@ EVO uses `prolog-runner` under the hood to execute Prolog and return results as 
 ### File roles
 
 - `.codex/skills/evo/SKILL.md`
-  - The skill entrypoint you install into Codex (`~/.codex/skills/evo/` or project-local).
+  - The skill entrypoint you install into Codex (project-level or global-level).
   - Explains what EVO is and how the EVO agent uses the local harness (`scripts/evo_run.py`) to produce tool-grounded derivations.
 
 - `.codex/skills/evo/agents/openai.yaml`
@@ -177,22 +204,57 @@ If command/tool execution is not available in your Codex environment, EVO should
 Run a KB file and enable an assumption:
 
 ```bash
-python ~/.codex/skills/evo/scripts/evo_run.py --kb-file path/to/task.pl --assumption some_assumption
+python ./.codex/skills/evo/scripts/evo_run.py --kb-file path/to/task.pl --assumption some_assumption
 ```
 
 Pass KB content inline (base64 avoids shell quoting issues):
 
 ```bash
-python ~/.codex/skills/evo/scripts/evo_run.py --kb-b64 <BASE64_UTF8_KB>
+python ./.codex/skills/evo/scripts/evo_run.py --kb-b64 <BASE64_UTF8_KB>
 ```
 
 ## Claude Code CLI implementation
 
-Claude Code can use the same EVO workflow via a global (recommended) or project-local install.
+Claude Code uses the same EVO workflow via project-level or global-level install.
+
+> Warning: choose one install scope per skill (`project` or `global`), not both. Installing the same skill in both places creates duplicate copies and can cause stale/conflicting behavior.
 
 ### Installation (Claude Code)
 
-#### Global install (recommended)
+#### Project-level install (recommended)
+
+From this repo, keep or copy these into your project root:
+
+- `.claude/skills/evo/`
+- `.claude/skills/prolog-runner/`
+- `.claude/agents/evo.md`
+
+EVO's harness runner (`scripts/evo_run.py`) expects `prolog-runner` to be installed in the **same** `skills/` directory tree (so it can find `prolog-runner/scripts/run_prolog.py`).
+
+Example copy commands:
+
+- Windows (PowerShell, run from the repo root):
+
+```powershell
+New-Item -ItemType Directory -Force -Path ".\.claude\skills" | Out-Null
+New-Item -ItemType Directory -Force -Path ".\.claude\agents" | Out-Null
+Copy-Item -Recurse -Force ".\.claude\skills\evo" ".\.claude\skills\"
+Copy-Item -Recurse -Force ".\.claude\skills\prolog-runner" ".\.claude\skills\"
+Copy-Item -Force ".\.claude\agents\evo.md" ".\.claude\agents\evo.md"
+```
+
+- macOS/Linux (bash/zsh, run from the repo root):
+
+```bash
+mkdir -p ./.claude/skills ./.claude/agents
+cp -R ./.claude/skills/evo ./.claude/skills/
+cp -R ./.claude/skills/prolog-runner ./.claude/skills/
+cp ./.claude/agents/evo.md ./.claude/agents/evo.md
+```
+
+Restart Claude Code after installing/updating skills and agents.
+
+#### Global-level install (optional)
 
 Install into your global Claude directories:
 
@@ -207,8 +269,6 @@ From this repo, copy:
 
 - `.claude/skills/evo/` and `.claude/skills/prolog-runner/` into your global skills directory
 - `.claude/agents/evo.md` into your global agents directory
-
-EVO's harness runner (`scripts/evo_run.py`) expects `prolog-runner` to be installed in the **same** `skills/` directory tree (so it can find `prolog-runner/scripts/run_prolog.py`).
 
 Example copy commands:
 
@@ -230,12 +290,6 @@ cp -R ./.claude/skills/evo ~/.claude/skills/
 cp -R ./.claude/skills/prolog-runner ~/.claude/skills/
 cp ./.claude/agents/evo.md ~/.claude/agents/evo.md
 ```
-
-Restart Claude Code after installing/updating skills and agents.
-
-#### Project-local (optional)
-
-Copy this repo's `.claude/` folder into your project root.
 
 ### Files and how they work
 
