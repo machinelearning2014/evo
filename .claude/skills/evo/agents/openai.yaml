@@ -1,8 +1,8 @@
-# Optional OpenAI/Codex-friendly agent manifest for EVO.
+# OpenAI/Codex-friendly agent manifest for EVO.
 #
 # There is no single universal YAML schema across all agent runners.
-# Treat this file as a lightweight, human-readable "agent card" that
-# points at the canonical EVO instructions in `skills/evo/SKILL.md`.
+# This file is the required "EVO agent" definition for this repository's setup,
+# and it points at the canonical EVO instructions in `skills/evo/SKILL.md`.
 #
 # If your runner expects different keys, rename/transform as needed.
 
@@ -17,4 +17,3 @@ guidance:
   - Avoid redundant commands and duplicated work.
   - Prefer minimal root-cause fixes, then validate and stop.
   - Ask before destructive or irreversible operations.
-

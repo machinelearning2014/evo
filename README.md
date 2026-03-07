@@ -50,12 +50,12 @@ When EVO is active, the agent should:
 
 ## Agent definitions (EVO)
 
-This repo includes **optional agent-definition files** in addition to the skill prompt:
+For this repo's setup, the **agent-definition files are required** (not optional). They define the "EVO" agent entrypoint that loads and applies the workflow in `skills/evo/SKILL.md`.
 
-- `skills/evo/agents/openai.yaml` - an OpenAI/Codex-friendly *agent manifest* for "EVO" (a lightweight "agent card" pointing at `skills/evo/SKILL.md`).
-- `.claude/agents/evo.md` - the Claude Code CLI equivalent *sub-agent* definition for "EVO" (Markdown with YAML frontmatter).
+- `skills/evo/agents/openai.yaml` - OpenAI/Codex-oriented agent manifest for "EVO" (points at `skills/evo/SKILL.md`).
+- `.claude/agents/evo.md` - Claude Code CLI sub-agent definition for "EVO" (Markdown with YAML frontmatter).
 
-If your environment uses a different schema for OpenAI agent manifests, treat `skills/evo/agents/openai.yaml` as a starting point and adapt the keys.
+If your environment expects a different schema for agent manifests, keep the intent the same: the "EVO" agent should reference and enforce the rules in `skills/evo/SKILL.md`.
 
 ## Quick start
 
