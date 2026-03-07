@@ -30,7 +30,7 @@ In Codex CLI, EVO is implemented as a skill folder plus an agent definition and 
 
 - `.codex/skills/evo/SKILL.md`
   - The skill entrypoint you install into Codex (`~/.codex/skills/evo/` or project-local).
-  - Explains what EVO is and how to run the local Prolog harness helper (`scripts/evo_run.py`).
+  - Explains what EVO is and how the EVO agent uses the local harness (`scripts/evo_run.py`) to produce tool-grounded derivations.
 
 - `.codex/skills/evo/agents/openai.yaml`
   - Defines the "EVO" agent card used by OpenAI/Codex integrations.
@@ -59,15 +59,18 @@ In Codex CLI, EVO is implemented as a skill folder plus an agent definition and 
 
 ### How it operates (end-to-end)
 
-1. Codex loads the EVO skill (`.codex/skills/evo/SKILL.md`) and/or uses the EVO agent definition (`.codex/skills/evo/agents/openai.yaml`).
-2. When you want a concrete, locally-checkable derivation, you run `scripts/evo_run.py` with a task KB.
-3. `evo_run.py` embeds `evo_harness.pl` + your KB + enabled assumptions, then calls the shared Prolog runner.
-4. The result is machine-readable JSON you can use to:
-   - refuse answers when inconsistent
-   - present derived conclusions with proof traces
-   - mark conclusions as assumption-dependent or robust
+1. Codex loads the EVO agent definition (`.codex/skills/evo/agents/openai.yaml`) and applies its `default_prompt` (the mandatory EVO workflow).
+2. EVO formalizes the task into a Prolog knowledge base (KB): observations/claims, rules, explicit assumptions, constraints/contradictions, and a `conclusion/1` goal (often starting from `references/template_kb.pl`).
+3. EVO **automatically runs the local harness** by invoking `.codex/skills/evo/scripts/evo_run.py` via the CLI's command/tool execution.
+4. `evo_run.py` embeds `references/evo_harness.pl` + the KB + enabled assumptions, then runs:
+   - `inconsistent.` (consistency check)
+   - `conclusion_with_proof(Answer, Proof).` (derivations with proof traces)
+   - assumption-drop rechecks (assumption-dependence testing) when assumptions were enabled
+5. EVO converts the JSON result into a natural-language response, including: conclusions, key assumptions, whether conclusions are robust vs assumption-dependent, and sources when web tools were used.
 
-### Example usage
+If command/tool execution is not available in your Codex environment, EVO should fall back to asking you to run the same `evo_run.py` commands manually and paste the JSON output.
+
+### Manual usage (debugging / offline)
 
 Run a KB file and enable an assumption:
 
@@ -78,7 +81,7 @@ python ~/.codex/skills/evo/scripts/evo_run.py --kb-file path/to/task.pl --assump
 Pass KB content inline (base64 avoids shell quoting issues):
 
 ```bash
-python ~/.codex/skills/evo/scripts/evo_run.py --kb-b64 <BASE64_UTC8_KB>
+python ~/.codex/skills/evo/scripts/evo_run.py --kb-b64 <BASE64_UTF8_KB>
 ```
 
 ## Claude Code CLI implementation
@@ -100,5 +103,4 @@ Claude Code uses **project-local** configuration under `.claude/`.
 
 ### Practical note about Prolog execution
 
-Claude Code can follow the EVO workflow instructions, but local Prolog execution is still done via `scripts/evo_run.py` (same as the Codex path) if you want tool-backed derivations with proof traces and consistency checks.
-
+Claude Code can follow the EVO workflow instructions and (when command execution is enabled) can also run the same local harness automatically by invoking `scripts/evo_run.py`. If command/tool execution is disabled, it should ask you to run the command manually and provide the JSON output.
