@@ -8,6 +8,8 @@ $ErrorActionPreference = "Stop"
 $source = Join-Path $RepoRoot "skills\evo"
 $destClaude = Join-Path $RepoRoot ".claude\skills\evo"
 $destCodex = Join-Path $RepoRoot ".codex\skills\evo"
+$claudeAgentSource = Join-Path $source "agents\\claude.md"
+$claudeAgentDest = Join-Path $RepoRoot ".claude\\agents\\evo.md"
 
 if (-not (Test-Path $source)) {
   throw "Expected canonical skill source at: $source"
@@ -24,3 +26,9 @@ function Sync-To($dest) {
 Sync-To $destClaude
 Sync-To $destCodex
 
+if (Test-Path $claudeAgentSource) {
+  $claudeAgentDestDir = Split-Path -Parent $claudeAgentDest
+  New-Item -ItemType Directory -Force -Path $claudeAgentDestDir | Out-Null
+  Copy-Item -Force -Path $claudeAgentSource -Destination $claudeAgentDest
+  Write-Host "Synced: $claudeAgentDest"
+}

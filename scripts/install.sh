@@ -20,11 +20,25 @@ copy_skill() {
   echo "Installed EVO skill to: $dest"
 }
 
+copy_claude_agent() {
+  local agent_source="$source_dir/agents/claude.md"
+  if [[ -f "$agent_source" ]]; then
+    local dest_dir="$project_root/.claude/agents"
+    mkdir -p "$dest_dir"
+    cp "$agent_source" "$dest_dir/evo.md"
+    echo "Installed Claude sub-agent to: $dest_dir/evo.md"
+  fi
+}
+
 case "$target" in
-  claude) copy_skill "$project_root/.claude/skills/evo" ;;
+  claude)
+    copy_skill "$project_root/.claude/skills/evo"
+    copy_claude_agent
+    ;;
   codex)  copy_skill "$project_root/.codex/skills/evo" ;;
   both)
     copy_skill "$project_root/.claude/skills/evo"
+    copy_claude_agent
     copy_skill "$project_root/.codex/skills/evo"
     ;;
   *)
@@ -32,4 +46,3 @@ case "$target" in
     exit 2
     ;;
 esac
-

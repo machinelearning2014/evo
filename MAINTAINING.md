@@ -6,6 +6,10 @@ This repo intentionally contains three copies of the EVO skill:
 - Claude Code project copy: `.claude/skills/evo/`
 - Codex CLI project copy: `.codex/skills/evo/`
 
+It also contains a Claude Code sub-agent definition:
+
+- `.claude/agents/evo.md` (synced from `skills/evo/agents/claude.md`)
+
 ## Rule
 
 Only edit `skills/evo/` directly. Then sync to the other locations.
@@ -18,4 +22,3 @@ Only edit `skills/evo/` directly. Then sync to the other locations.
 ## Why duplicates?
 
 So users can git-clone this repo into a project and have both CLIs detect the skill without extra setup.
-

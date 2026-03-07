@@ -22,11 +22,21 @@ function Copy-Skill($dest) {
   Write-Host "Installed EVO skill to: $dest"
 }
 
+function Copy-ClaudeAgent($projectRoot) {
+  $agentSource = Join-Path $source "agents\\claude.md"
+  if (Test-Path $agentSource) {
+    $agentDestDir = Join-Path $projectRoot ".claude\\agents"
+    New-Item -ItemType Directory -Force -Path $agentDestDir | Out-Null
+    Copy-Item -Force -Path $agentSource -Destination (Join-Path $agentDestDir "evo.md")
+    Write-Host "Installed Claude sub-agent to: $(Join-Path $agentDestDir 'evo.md')"
+  }
+}
+
 if ($Target -eq "claude" -or $Target -eq "both") {
   Copy-Skill (Join-Path $ProjectRoot ".claude\skills\evo")
+  Copy-ClaudeAgent $ProjectRoot
 }
 
 if ($Target -eq "codex" -or $Target -eq "both") {
   Copy-Skill (Join-Path $ProjectRoot ".codex\skills\evo")
 }
-
