@@ -13,14 +13,16 @@ EVO (Explicit-assumption Verification Orchestrator) is a Prolog-first reasoning 
 
 ## What EVO does
 
-EVO forces a "derive, verify, then answer" loop:
+EVO's `default_prompt` (in `.codex/skills/evo/agents/openai.yaml`) enforces a strict Prolog-first workflow:
 
-- Treats assumptions as explicit objects (not hidden intuition).
-- Requires derivations with proof traces (Prolog-first).
-- Runs consistency checks before answering.
-- Tests whether conclusions survive removing assumptions (assumption-dependence).
-- Prevents "answering from memory" when a tool-backed derivation is required.
-- Produces a natural-language final answer (no raw Prolog) and lists sources when web tools are used.
+- **No "from memory" answers**: responses must be grounded in tool execution outputs.
+- **Formalize in Prolog**: encode observations/claims, rules, explicit assumptions, and constraints into a KB with a `conclusion/1` goal.
+- **Derive with proofs**: conclusions must be derivable with a proof trace (not just explained or enumerated).
+- **Consistency first**: always check `inconsistent` and never answer from an inconsistent KB.
+- **Assumption-dependence testing**: re-derive conclusions with assumptions removed; label conclusions as robust vs assumption-dependent.
+- **Tool usage is fact acquisition only**: other tools can supply facts/primitive computations, but Prolog remains the reasoner.
+- **Strict result labels**: every task is classified as `SOLVED`, `CANDIDATE`, or `MAPPED` (uniqueness requires proof).
+- **Natural-language output**: final answers must not include raw Prolog; include a `Sources:` section when external sources are used.
 
 ## Codex CLI (OpenAI) implementation
 
