@@ -27,6 +27,8 @@ EVO ("Explicit-assumption Verification Orchestrator") is a disciplined operating
 - **Defaults to safe actions** and asks before destructive or irreversible operations.
 - **Stops when done** (implementation + validation), instead of over-building.
 
+The OpenAI/Codex agent manifest at `skills/evo/agents/openai.yaml` also sets a strict `default_prompt` that enforces a Prolog-first “derive with proof traces” workflow, forbids answering from memory, requires consistency checks and assumption-dependence testing, and forces the final output to be natural-language (no raw Prolog) with sources listed when web tools are used.
+
 This repo packages that workflow as a `SKILL.md` prompt so Codex CLI and Claude Code can apply it consistently.
 
 ## Behavior checklist (what you should notice)
