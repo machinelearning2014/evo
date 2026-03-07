@@ -210,6 +210,29 @@ From this repo, copy:
 
 EVO's harness runner (`scripts/evo_run.py`) expects `prolog-runner` to be installed in the **same** `skills/` directory tree (so it can find `prolog-runner/scripts/run_prolog.py`).
 
+Example copy commands:
+
+- Windows (PowerShell, run from the repo root):
+
+```powershell
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.claude\skills" | Out-Null
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.claude\agents" | Out-Null
+Copy-Item -Recurse -Force ".\.claude\skills\evo" "$env:USERPROFILE\.claude\skills\"
+Copy-Item -Recurse -Force ".\.claude\skills\prolog-runner" "$env:USERPROFILE\.claude\skills\"
+Copy-Item -Force ".\.claude\agents\evo.md" "$env:USERPROFILE\.claude\agents\evo.md"
+```
+
+- macOS/Linux (bash/zsh, run from the repo root):
+
+```bash
+mkdir -p ~/.claude/skills ~/.claude/agents
+cp -R ./.claude/skills/evo ~/.claude/skills/
+cp -R ./.claude/skills/prolog-runner ~/.claude/skills/
+cp ./.claude/agents/evo.md ~/.claude/agents/evo.md
+```
+
+Restart Claude Code after installing/updating skills and agents.
+
 #### Project-local (optional)
 
 Copy this repo's `.claude/` folder into your project root.
