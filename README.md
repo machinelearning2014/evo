@@ -1,7 +1,7 @@
 <div align="center">
 
 # EVO Logical Reasoning 
-**>>> Explicit-assumption Verification Orchestrator <<<**
+**> Explicit-assumption Verification Orchestrator <**
 
 EVO is a Prolog-first reasoning workflow packaged as skills for **Codex CLI (OpenAI)** and **Claude Code CLI**.
 
