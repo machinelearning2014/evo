@@ -87,17 +87,21 @@ From this repo, copy these folders into your project root:
 
 Example copy commands:
 
-- Windows (PowerShell, run from the repo root):
+- Windows (PowerShell, run from `$env:USERPROFILE\\evo`):
 
 ```powershell
+$repo = Join-Path $env:USERPROFILE "evo"
+Set-Location $repo
 New-Item -ItemType Directory -Force -Path ".\.codex\skills" | Out-Null
 Copy-Item -Recurse -Force ".\.codex\skills\evo" ".\.codex\skills\"
 Copy-Item -Recurse -Force ".\.codex\skills\prolog-runner" ".\.codex\skills\"
 ```
 
-- macOS/Linux (bash/zsh, run from the repo root):
+- macOS/Linux (bash/zsh, run from `~/evo`):
 
 ```bash
+REPO=~/evo
+cd "$REPO"
 mkdir -p ./.codex/skills
 cp -R ./.codex/skills/evo ./.codex/skills/
 cp -R ./.codex/skills/prolog-runner ./.codex/skills/
@@ -110,8 +114,8 @@ Restart Codex CLI after installing/updating skills.
 Install into your global Codex skills directory:
 
 - Windows:
-  - `%USERPROFILE%\.codex\skills\evo\` (e.g. `C:\Users\<you>\.codex\skills\evo\`)
-  - `%USERPROFILE%\.codex\skills\prolog-runner\`
+  - `$env:USERPROFILE\.codex\skills\evo\`
+  - `$env:USERPROFILE\.codex\skills\prolog-runner\`
 - macOS/Linux:
   - `~/.codex/skills/evo/`
   - `~/.codex/skills/prolog-runner/`
@@ -123,17 +127,21 @@ From this repo, copy these folders into your global skills directory:
 
 Example copy commands:
 
-- Windows (PowerShell, run from the repo root):
+- Windows (PowerShell, run from `$env:USERPROFILE\\evo`):
 
 ```powershell
+$repo = Join-Path $env:USERPROFILE "evo"
+Set-Location $repo
 New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.codex\skills" | Out-Null
 Copy-Item -Recurse -Force ".\.codex\skills\evo" "$env:USERPROFILE\.codex\skills\"
 Copy-Item -Recurse -Force ".\.codex\skills\prolog-runner" "$env:USERPROFILE\.codex\skills\"
 ```
 
-- macOS/Linux (bash/zsh, run from the repo root):
+- macOS/Linux (bash/zsh, run from `~/evo`):
 
 ```bash
+REPO=~/evo
+cd "$REPO"
 mkdir -p ~/.codex/skills
 cp -R ./.codex/skills/evo ~/.codex/skills/
 cp -R ./.codex/skills/prolog-runner ~/.codex/skills/
@@ -233,9 +241,11 @@ EVO's harness runner (`scripts/evo_run.py`) expects `prolog-runner` to be instal
 
 Example copy commands:
 
-- Windows (PowerShell, run from the repo root):
+- Windows (PowerShell, run from `$env:USERPROFILE\\evo`):
 
 ```powershell
+$repo = Join-Path $env:USERPROFILE "evo"
+Set-Location $repo
 New-Item -ItemType Directory -Force -Path ".\.claude\skills" | Out-Null
 New-Item -ItemType Directory -Force -Path ".\.claude\agents" | Out-Null
 Copy-Item -Recurse -Force ".\.claude\skills\evo" ".\.claude\skills\"
@@ -243,9 +253,11 @@ Copy-Item -Recurse -Force ".\.claude\skills\prolog-runner" ".\.claude\skills\"
 Copy-Item -Force ".\.claude\agents\evo.md" ".\.claude\agents\evo.md"
 ```
 
-- macOS/Linux (bash/zsh, run from the repo root):
+- macOS/Linux (bash/zsh, run from `~/evo`):
 
 ```bash
+REPO=~/evo
+cd "$REPO"
 mkdir -p ./.claude/skills ./.claude/agents
 cp -R ./.claude/skills/evo ./.claude/skills/
 cp -R ./.claude/skills/prolog-runner ./.claude/skills/
@@ -259,8 +271,8 @@ Restart Claude Code after installing/updating skills and agents.
 Install into your global Claude directories:
 
 - Windows:
-  - Skills: `%USERPROFILE%\.claude\skills\evo\` and `%USERPROFILE%\.claude\skills\prolog-runner\`
-  - Agent: `%USERPROFILE%\.claude\agents\evo.md`
+  - Skills: `$env:USERPROFILE\.claude\skills\evo\` and `$env:USERPROFILE\.claude\skills\prolog-runner\`
+  - Agent: `$env:USERPROFILE\.claude\agents\evo.md`
 - macOS/Linux:
   - Skills: `~/.claude/skills/evo/` and `~/.claude/skills/prolog-runner/`
   - Agent: `~/.claude/agents/evo.md`
@@ -272,9 +284,11 @@ From this repo, copy:
 
 Example copy commands:
 
-- Windows (PowerShell, run from the repo root):
+- Windows (PowerShell, run from `$env:USERPROFILE\\evo`):
 
 ```powershell
+$repo = Join-Path $env:USERPROFILE "evo"
+Set-Location $repo
 New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.claude\skills" | Out-Null
 New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.claude\agents" | Out-Null
 Copy-Item -Recurse -Force ".\.claude\skills\evo" "$env:USERPROFILE\.claude\skills\"
@@ -282,9 +296,11 @@ Copy-Item -Recurse -Force ".\.claude\skills\prolog-runner" "$env:USERPROFILE\.cl
 Copy-Item -Force ".\.claude\agents\evo.md" "$env:USERPROFILE\.claude\agents\evo.md"
 ```
 
-- macOS/Linux (bash/zsh, run from the repo root):
+- macOS/Linux (bash/zsh, run from `~/evo`):
 
 ```bash
+REPO=~/evo
+cd "$REPO"
 mkdir -p ~/.claude/skills ~/.claude/agents
 cp -R ./.claude/skills/evo ~/.claude/skills/
 cp -R ./.claude/skills/prolog-runner ~/.claude/skills/
@@ -320,15 +336,15 @@ Use the repo scripts in `scripts/` to avoid manual copy drift.
 PowerShell:
 
 ```powershell
-# from repo root
-powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target both -ProjectRoot .
+$repo = Join-Path $env:USERPROFILE "evo"
+powershell -ExecutionPolicy Bypass -File (Join-Path $repo "scripts\\install.ps1") -Target both -ProjectRoot $repo
 ```
 
 Bash:
 
 ```bash
-# from repo root
-bash ./scripts/install.sh both .
+REPO=~/evo
+bash "$REPO/scripts/install.sh" both "$REPO"
 ```
 
 Targets:
@@ -344,15 +360,15 @@ Targets:
 PowerShell:
 
 ```powershell
-# from repo root
-powershell -ExecutionPolicy Bypass -File .\scripts\sync.ps1 -RepoRoot .
+$repo = Join-Path $env:USERPROFILE "evo"
+powershell -ExecutionPolicy Bypass -File (Join-Path $repo "scripts\\sync.ps1") -RepoRoot $repo
 ```
 
 Bash:
 
 ```bash
-# from repo root
-bash ./scripts/sync.sh .
+REPO=~/evo
+bash "$REPO/scripts/sync.sh" "$REPO"
 ```
 
 Recommended workflow:

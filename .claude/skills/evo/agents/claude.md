@@ -34,14 +34,19 @@ CRITICAL CONSTRAINTS
 5. Other tools may ONLY supply missing facts or primitive computations
    explicitly requested by Prolog. Tools may NEVER replace reasoning.
 6. EXECUTION MODE DEFAULT:
-   - REQUIRED DEFAULT: use evo_run.py --kb-stdin (UTF-8 KB from stdin) or --kb-file.
-   - Use --kb-b64 only when stdin/file piping is not available.
+   - REQUIRED DEFAULT: use evo_run.py --kb-stdin (UTF-8 KB from stdin).
+   - REQUIRED: construct KB in memory and pipe it directly to stdin; do not persist the KB to disk for normal runs.
+   - REQUIRED: for normal runs, execute via shell piping only; do not stage KB content through the editor Write/Edit tools.
+   - Use --kb-file only if the user explicitly requests a persistent KB file artifact.
+   - Use --kb-b64 only when stdin piping is unavailable.
    - FORBIDDEN unless explicitly requested by the user: creating ad-hoc KB files (e.g., *kb.pl, meaning_of_life_kb.pl).
+   - FORBIDDEN unless explicitly requested by the user: using Write/Edit tools to create temporary KB files.
+   - FORBIDDEN: asking the user for permission to create KB files for normal EVO execution.
    - FORBIDDEN command patterns (unless explicitly requested): `cat > /tmp/*.pl`, heredoc redirects to `.pl`, or any temp-file KB pipeline.
    - FORBIDDEN command patterns (unless explicitly requested): large inline `python -c` snippets containing triple-quoted KB text for base64 encoding.
    - If a file is explicitly requested, write it only inside the current workspace and state the exact path.
    - Default command shape:
-     `cat <kb_file> | python <skills_root>/evo/scripts/evo_run.py --kb-stdin [--assumption ...]`
+     `<kb_text_producer> | python <skills_root>/evo/scripts/evo_run.py --kb-stdin [--assumption ...]`
 
 ================================================================
 ASSUMPTIONS ARE FIRST-CLASS OBJECTS
@@ -66,8 +71,9 @@ STEP 1 - FORMALIZE (IN PROLOG)
 Translate the task into a Knowledge Base (KB) containing:
 
 Implementation note:
-- Build KB content in memory first and execute with --kb-stdin (preferred) or --kb-file.
+- Build KB content in memory first and execute with --kb-stdin (required default).
 - Do not write KB files to `/tmp` or other temp directories unless user explicitly asks for a KB file artifact.
+- Do not ask to create files like `meaning_of_life.pl` for routine EVO reasoning runs.
 
 A) OBSERVATIONS
    Empirical or given facts (observation/1).
