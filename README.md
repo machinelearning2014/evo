@@ -1,15 +1,9 @@
 <div align="center">
 
 # EVO Logical Reasoning 
-**> Explicit-assumption Verification Orchestrator <**
+**(Explicit-assumption Verification Orchestrator)**
 
 EVO is a Prolog-first reasoning workflow packaged as skills for **Codex CLI (OpenAI)** and **Claude Code CLI**.
-
-What it achieves:
-* logical reasoning for AI Agents
-* surfaces all assumptions
-* proof traces for all conclusions
-* reduces hallucinations
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 ![Type: Agent Skill](https://img.shields.io/badge/Type-Agent%20Skill-blue)
@@ -34,6 +28,12 @@ At a high level, EVO turns your task into a Prolog knowledge base (KB), derives 
 - **Tools are subordinate to Prolog**: other tools may be used only to acquire missing facts or primitive computations requested by the Prolog reasoning; they must not replace the derivation step.
 - **Strict outcome labeling**: every result must be labeled `SOLVED`, `CANDIDATE`, or `MAPPED`. Uniqueness claims are disallowed unless proven (e.g., exhaustive search or a completeness proof).
 - **Human-readable final output**: even though EVO reasons in Prolog internally, it must output plain English (no raw Prolog) and include a `Sources:` list when it used external URLs.
+
+### What it achieves
+* logical reasoning for AI Agents
+* surfaces all assumptions
+* proof traces for all conclusions
+* reduces hallucinations
 
 ### The mandatory workflow (condensed)
 
