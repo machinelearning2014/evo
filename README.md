@@ -5,7 +5,7 @@
 
 EVO is a Prolog-first reasoning workflow packaged as skills for **Codex CLI (OpenAI)** and **Claude Code CLI**.
 
-It "enforces logical reasoning" in AI Agents.
+It "__enforces logical reasoning__" in AI Agents.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 ![Type: Agent Skill](https://img.shields.io/badge/Type-Agent%20Skill-blue)
