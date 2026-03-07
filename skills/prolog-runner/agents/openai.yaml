@@ -1,0 +1,4 @@
+interface:
+  display_name: "Prolog Runner"
+  short_description: "Run SWI-Prolog queries and return JSON solutions"
+  default_prompt: "Run Prolog goals via scripts/run_prolog.py, prefer returning and interpreting the JSON solutions list."

@@ -70,6 +70,10 @@ EVO uses `prolog-runner` under the hood to execute Prolog and return results as 
 - `.codex/skills/evo/references/template_kb.pl`
   - A starter knowledge base template showing the expected predicates (observations, rules, assumptions, constraints, and `conclusion/1`).
 
+- `.codex/skills/prolog-runner/`
+  - Companion skill required by EVO for local Prolog execution.
+  - Provides `.codex/skills/prolog-runner/scripts/run_prolog.py`, which runs `swipl` and returns JSON bindings.
+
 ### How it operates (end-to-end)
 
 1. Codex loads the EVO agent definition (`.codex/skills/evo/agents/openai.yaml`) and applies its `default_prompt` (the mandatory EVO workflow).
