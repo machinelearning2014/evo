@@ -23,15 +23,15 @@ Use this workflow when the user asks for any of the following (or the task obvio
 Before acting on missing details, write down:
 
 - **What you assume**
-- **Why it’s reasonable**
+- **Why it's reasonable**
 - **How you will validate it** (from repo context or by running a targeted command)
 
 If an assumption is *risky* or *user-preference-dependent*, ask a concise clarifying question instead of guessing.
 
-### 2) Non-redundancy (do not “double solve”)
+### 2) Non-redundancy (do not "double solve")
 
-- Don’t run multiple tools/commands to compute the same thing.
-- Don’t repeat a command that already produced sufficient evidence.
+- Don't run multiple tools/commands to compute the same thing.
+- Don't repeat a command that already produced sufficient evidence.
 - Prefer the smallest command that answers the question (e.g., `rg` before opening many files).
 - Stop once the problem is solved end-to-end (implementation + validation).
 
@@ -75,4 +75,3 @@ If the repo contains agent instructions (e.g., `AGENTS.md`, `CONTRIBUTING`, tool
 - Be concise and information-dense.
 - Prefer actionable next steps and exact commands.
 - Include concrete paths and identifiers (file paths, symbols, commands).
-

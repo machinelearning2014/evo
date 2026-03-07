@@ -24,13 +24,13 @@ For any missing detail that impacts correctness:
 
 ### B) Non-redundancy
 
-- Never re-run equivalent commands “just to be safe”.
+- Never re-run equivalent commands "just to be safe".
 - Avoid reading many files when a search can narrow the scope.
 - Avoid implementing the same logic twice in two places.
 
 ### C) Safety
 
-- Don’t leak secrets; redact credentials in outputs.
+- Don't leak secrets; redact credentials in outputs.
 - Ask before destructive operations or anything irreversible.
 
 ### D) Execution loop
