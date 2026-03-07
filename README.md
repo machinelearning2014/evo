@@ -26,6 +26,15 @@ EVO forces a "derive, verify, then answer" loop:
 
 In Codex CLI, EVO is implemented as a skill folder plus an agent definition and a small Prolog execution toolchain.
 
+### Required installs (global Codex skills)
+
+For the fully automated EVO workflow (including local Prolog execution), you must have **both** of these global skill folders installed:
+
+- `C:\Users\trung\.codex\skills\evo\`
+- `C:\Users\trung\.codex\skills\prolog-runner\`
+
+EVO uses `prolog-runner` under the hood to execute Prolog and return results as JSON.
+
 ### File roles
 
 - `.codex/skills/evo/SKILL.md`
