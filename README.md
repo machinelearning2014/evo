@@ -87,14 +87,34 @@ Install into your global Codex skills directory:
   - `~/.codex/skills/evo/`
   - `~/.codex/skills/prolog-runner/`
 
-From this repo, copy these folders into your global location:
+From this repo, copy these folders into your global skills directory:
 
 - `.codex/skills/evo/`
 - `.codex/skills/prolog-runner/`
 
-#### Step 3: Confirm files are present
+Example copy commands:
 
-After installing, you should have (either globally or in your project):
+- Windows (PowerShell, run from the repo root):
+
+```powershell
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.codex\skills" | Out-Null
+Copy-Item -Recurse -Force ".\.codex\skills\evo" "$env:USERPROFILE\.codex\skills\"
+Copy-Item -Recurse -Force ".\.codex\skills\prolog-runner" "$env:USERPROFILE\.codex\skills\"
+```
+
+- macOS/Linux (bash/zsh, run from the repo root):
+
+```bash
+mkdir -p ~/.codex/skills
+cp -R ./.codex/skills/evo ~/.codex/skills/
+cp -R ./.codex/skills/prolog-runner ~/.codex/skills/
+```
+
+Restart Codex CLI after installing/updating skills.
+
+#### Step 3: Confirm global install
+
+After installing, you should have:
 
 ```text
 .codex/skills/
