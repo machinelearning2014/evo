@@ -2,7 +2,7 @@
 
 # EVO Skill
 
-Explicit-assumption, non-redundant coding workflow packaged as an **Agent Skill** for **Codex CLI** and **Claude Code**.
+An explicit-assumption, non-redundant workflow packaged as an **Agent Skill** for **Codex CLI** and **Claude Code**.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 ![Type: Agent Skill](https://img.shields.io/badge/Type-Agent%20Skill-blue)
@@ -16,12 +16,36 @@ Explicit-assumption, non-redundant coding workflow packaged as an **Agent Skill*
 
 </div>
 
-## What’s included
+## What EVO does
 
-- `.claude/skills/evo/` — Claude Code project skill
-- `.codex/skills/evo/` — Codex CLI project skill
-- `.claude/commands/evo.md` — optional Claude Code slash command (`/evo`)
-- `skills/evo/` — canonical skill source (edit here first)
+EVO ("Explicit-assumption Verification Orchestrator") is a disciplined operating mode for coding agents. It makes the agent behave more like a careful engineer:
+
+- **States assumptions** whenever requirements or context are ambiguous.
+- **Validates assumptions** using the smallest possible evidence (repo files, minimal commands, targeted tests).
+- **Avoids redundant work** (no "double solving", no repeated commands just for confidence).
+- **Optimizes for root-cause fixes** rather than surface patches.
+- **Defaults to safe actions** and asks before destructive or irreversible operations.
+- **Stops when done** (implementation + validation), instead of over-building.
+
+This repo packages that workflow as a `SKILL.md` prompt so Codex CLI and Claude Code can apply it consistently.
+
+## Behavior checklist (what you should notice)
+
+When EVO is active, the agent should:
+
+1. Clarify goal and success criteria (what "done" means).
+2. List high-impact assumptions (and how it will verify them).
+3. Search/inspect minimally (prefer fast search over opening many files).
+4. Implement the smallest change that fixes the root cause.
+5. Validate with the most targeted command available (single test, narrow build, etc.).
+6. Report what changed, what was run, and what remains (if anything).
+
+## What's included
+
+- `.claude/skills/evo/` - Claude Code project skill
+- `.codex/skills/evo/` - Codex CLI project skill
+- `.claude/commands/evo.md` - optional Claude Code slash command (`/evo`)
+- `skills/evo/` - canonical skill source (edit here first)
 
 ## Quick start
 
@@ -30,7 +54,7 @@ If you want this skill **available in a specific project repo**, copy these fold
 - `.claude/`
 - `.codex/`
 
-If you want it **available globally** for your user account, copy `skills/evo/` into your CLI’s global skills directory.
+If you want it **available globally** for your user account, copy `skills/evo/` into your CLI's global skills directory.
 
 ## Install / Use
 
@@ -73,11 +97,21 @@ They copy `skills/evo/` into `.claude/skills/evo/` and/or `.codex/skills/evo/` u
 
 ```text
 .
-├─ skills/evo/               # canonical source (edit here)
-├─ .claude/skills/evo/       # Claude Code project skill copy
-├─ .codex/skills/evo/        # Codex CLI project skill copy
-└─ scripts/                  # install + sync helpers
+|- skills/evo/               # canonical source (edit here)
+|- .claude/skills/evo/       # Claude Code project skill copy
+|- .codex/skills/evo/        # Codex CLI project skill copy
+`- scripts/                  # install + sync helpers
 ```
+
+## Customizing EVO
+
+Edit `skills/evo/SKILL.md`. Common tweaks:
+
+- Make it stricter about asking questions vs making assumptions.
+- Add your org's coding standards and security rules.
+- Add project-specific "definition of done" (tests, formatting, CI).
+
+Then sync copies (below).
 
 ## Maintaining
 
@@ -86,8 +120,9 @@ Only edit `skills/evo/` directly, then sync copies:
 - PowerShell: `scripts/sync.ps1`
 - Bash: `scripts/sync.sh`
 
-## Notes
+## Where the rules live
 
-- The skill uses `SKILL.md` frontmatter (`name: evo`) and works as a project-local skill for both CLIs.
-- Keep the content tool-agnostic so behavior stays consistent across Codex and Claude.
+- Skill definition (canonical): `skills/evo/SKILL.md`
+- Examples: `skills/evo/EXAMPLES.md`
+- Maintenance notes: `MAINTAINING.md`
 
