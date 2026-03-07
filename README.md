@@ -30,8 +30,12 @@ In Codex CLI, EVO is implemented as a skill folder plus an agent definition and 
 
 For the fully automated EVO workflow (including local Prolog execution), you must have **both** of these global skill folders installed:
 
-- `C:\Users\trung\.codex\skills\evo\`
-- `C:\Users\trung\.codex\skills\prolog-runner\`
+- Windows:
+  - `%USERPROFILE%\.codex\skills\evo\` (e.g. `C:\Users\<you>\.codex\skills\evo\`)
+  - `%USERPROFILE%\.codex\skills\prolog-runner\`
+- macOS/Linux:
+  - `~/.codex/skills/evo/`
+  - `~/.codex/skills/prolog-runner/`
 
 EVO uses `prolog-runner` under the hood to execute Prolog and return results as JSON.
 
