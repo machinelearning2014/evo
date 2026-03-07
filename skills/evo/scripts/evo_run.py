@@ -86,6 +86,16 @@ def _decode_kb_b64(value: str) -> str:
         raise SystemExit(f"Invalid --kb-b64 (expected UTF-8 text): {e}")
 
 
+def _read_kb_stdin() -> str:
+    raw = sys.stdin.buffer.read()
+    if not raw:
+        raise SystemExit("Invalid --kb-stdin (stdin is empty)")
+    try:
+        return raw.decode("utf-8")
+    except UnicodeDecodeError as e:
+        raise SystemExit(f"Invalid --kb-stdin (expected UTF-8 text): {e}")
+
+
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
         description="EVO helper: run EVO harness queries through the Prolog runner and summarize results as JSON."
@@ -97,6 +107,11 @@ def main(argv: list[str]) -> int:
         action="append",
         default=[],
         help="Inline Prolog KB as base64-encoded UTF-8 text. May be repeated.",
+    )
+    parser.add_argument(
+        "--kb-stdin",
+        action="store_true",
+        help="Read Prolog KB text from stdin (UTF-8).",
     )
     parser.add_argument(
         "--assumption",
@@ -118,6 +133,8 @@ def main(argv: list[str]) -> int:
         kb_parts.append(args.kb)
     for kb_b64 in args.kb_b64:
         kb_parts.append(_decode_kb_b64(kb_b64))
+    if args.kb_stdin:
+        kb_parts.append(_read_kb_stdin())
     kb = "\n\n".join(kb_parts)
 
     enabled = "\n".join([f"enabled_assumption({name})." for name in args.assumption])

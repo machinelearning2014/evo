@@ -307,3 +307,55 @@ cp ./.claude/agents/evo.md ~/.claude/agents/evo.md
 ### Practical note about Prolog execution
 
 Claude Code can follow the EVO workflow instructions and (when command execution is enabled) can also run the same local harness automatically by invoking `scripts/evo_run.py`. If command/tool execution is disabled, it should ask you to run the command manually and provide the JSON output.
+
+## Install and Sync Scripts
+
+Use the repo scripts in `scripts/` to avoid manual copy drift.
+
+### `install` scripts (initial setup)
+
+- Purpose: copy canonical skill content from `skills/evo/` plus `skills/prolog-runner/` into project `.claude` and/or `.codex` folders.
+- Also copies the Claude sub-agent file (`skills/evo/agents/claude.md`) to `.claude/agents/evo.md` when target includes Claude.
+
+PowerShell:
+
+```powershell
+# from repo root
+powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -Target both -ProjectRoot .
+```
+
+Bash:
+
+```bash
+# from repo root
+bash ./scripts/install.sh both .
+```
+
+Targets:
+- `codex`: install only `.codex` skill folders
+- `claude`: install only `.claude` skill folders + `.claude/agents/evo.md`
+- `both`: install both layouts
+
+### `sync` scripts (after editing canonical files)
+
+- Purpose: re-copy canonical `skills/evo/` into both `.claude/skills/evo/` and `.codex/skills/evo/`, and refresh `.claude/agents/evo.md`.
+- Use this after any change under `skills/evo/`.
+
+PowerShell:
+
+```powershell
+# from repo root
+powershell -ExecutionPolicy Bypass -File .\scripts\sync.ps1 -RepoRoot .
+```
+
+Bash:
+
+```bash
+# from repo root
+bash ./scripts/sync.sh .
+```
+
+Recommended workflow:
+1. Edit only `skills/evo/` (canonical source).
+2. Run `sync` script.
+3. Restart your CLI(s) so updated skills/agents are reloaded.

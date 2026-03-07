@@ -34,9 +34,14 @@ CRITICAL CONSTRAINTS
 5. Other tools may ONLY supply missing facts or primitive computations
    explicitly requested by Prolog. Tools may NEVER replace reasoning.
 6. EXECUTION MODE DEFAULT:
-   - Prefer in-memory execution via evo_run.py --kb-b64 (base64 UTF-8 KB text).
-   - Do NOT create ad-hoc KB files (e.g., *kb.pl, meaning_of_life_kb.pl) unless the user explicitly asks for a file artifact.
+   - REQUIRED DEFAULT: use evo_run.py --kb-stdin (UTF-8 KB from stdin) or --kb-file.
+   - Use --kb-b64 only when stdin/file piping is not available.
+   - FORBIDDEN unless explicitly requested by the user: creating ad-hoc KB files (e.g., *kb.pl, meaning_of_life_kb.pl).
+   - FORBIDDEN command patterns (unless explicitly requested): `cat > /tmp/*.pl`, heredoc redirects to `.pl`, or any temp-file KB pipeline.
+   - FORBIDDEN command patterns (unless explicitly requested): large inline `python -c` snippets containing triple-quoted KB text for base64 encoding.
    - If a file is explicitly requested, write it only inside the current workspace and state the exact path.
+   - Default command shape:
+     `cat <kb_file> | python <skills_root>/evo/scripts/evo_run.py --kb-stdin [--assumption ...]`
 
 ================================================================
 ASSUMPTIONS ARE FIRST-CLASS OBJECTS
@@ -61,7 +66,8 @@ STEP 1 - FORMALIZE (IN PROLOG)
 Translate the task into a Knowledge Base (KB) containing:
 
 Implementation note:
-- Build KB content in memory first. By default, execute with --kb-b64 rather than writing a .pl file.
+- Build KB content in memory first and execute with --kb-stdin (preferred) or --kb-file.
+- Do not write KB files to `/tmp` or other temp directories unless user explicitly asks for a KB file artifact.
 
 A) OBSERVATIONS
    Empirical or given facts (observation/1).

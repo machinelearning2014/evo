@@ -69,8 +69,14 @@ def _run_prolog_runner(
 
 
 def _decode_kb_b64(value: str) -> str:
+    # Be permissive about transport formatting: strip whitespace and repair
+    # missing base64 padding so shell-wrapped inputs still decode.
+    compact = "".join(value.split())
+    if compact:
+        compact += "=" * ((4 - (len(compact) % 4)) % 4)
+
     try:
-        raw = base64.b64decode(value, validate=True)
+        raw = base64.b64decode(compact, validate=True)
     except Exception as e:  # noqa: BLE001
         raise SystemExit(f"Invalid --kb-b64 (base64 decode failed): {e}")
 
@@ -78,6 +84,16 @@ def _decode_kb_b64(value: str) -> str:
         return raw.decode("utf-8")
     except UnicodeDecodeError as e:
         raise SystemExit(f"Invalid --kb-b64 (expected UTF-8 text): {e}")
+
+
+def _read_kb_stdin() -> str:
+    raw = sys.stdin.buffer.read()
+    if not raw:
+        raise SystemExit("Invalid --kb-stdin (stdin is empty)")
+    try:
+        return raw.decode("utf-8")
+    except UnicodeDecodeError as e:
+        raise SystemExit(f"Invalid --kb-stdin (expected UTF-8 text): {e}")
 
 
 def main(argv: list[str]) -> int:
@@ -91,6 +107,11 @@ def main(argv: list[str]) -> int:
         action="append",
         default=[],
         help="Inline Prolog KB as base64-encoded UTF-8 text. May be repeated.",
+    )
+    parser.add_argument(
+        "--kb-stdin",
+        action="store_true",
+        help="Read Prolog KB text from stdin (UTF-8).",
     )
     parser.add_argument(
         "--assumption",
@@ -112,6 +133,8 @@ def main(argv: list[str]) -> int:
         kb_parts.append(args.kb)
     for kb_b64 in args.kb_b64:
         kb_parts.append(_decode_kb_b64(kb_b64))
+    if args.kb_stdin:
+        kb_parts.append(_read_kb_stdin())
     kb = "\n\n".join(kb_parts)
 
     enabled = "\n".join([f"enabled_assumption({name})." for name in args.assumption])

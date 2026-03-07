@@ -19,11 +19,15 @@ Example:
 
 `python C:\\Users\\trung\\.codex\\skills\\evo\\scripts\\evo_run.py --kb-file path/to/task.pl --assumption some_assumption`
 
+Claude default (no temporary `.pl` file creation):
+
+`cat path/to/task.pl | python C:\\Users\\trung\\.claude\\skills\\evo\\scripts\\evo_run.py --kb-stdin --assumption some_assumption`
+
 ## Resources
 
 - `skills/evo/references/evo_harness.pl`: minimal harness providing proof tracing, assumptions, and consistency checks.
 - `skills/evo/references/template_kb.pl`: starter template for task KBs.
 - `skills/evo/scripts/evo_run.py`: helper to run `inconsistent` + derive conclusions and do assumption-drop tests.
 
-Tip (avoids PowerShell multi-line prompts): use --kb-b64 to pass a KB as base64 UTF-8 in one command line.
+Tip: prefer `--kb-stdin` (or `--kb-file`) over large inline `python -c` base64 snippets. Use `--kb-b64` only when stdin/file piping is unavailable.
 
