@@ -69,8 +69,14 @@ def _run_prolog_runner(
 
 
 def _decode_kb_b64(value: str) -> str:
+    # Be permissive about transport formatting: strip whitespace and repair
+    # missing base64 padding so shell-wrapped inputs still decode.
+    compact = "".join(value.split())
+    if compact:
+        compact += "=" * ((4 - (len(compact) % 4)) % 4)
+
     try:
-        raw = base64.b64decode(value, validate=True)
+        raw = base64.b64decode(compact, validate=True)
     except Exception as e:  # noqa: BLE001
         raise SystemExit(f"Invalid --kb-b64 (base64 decode failed): {e}")
 

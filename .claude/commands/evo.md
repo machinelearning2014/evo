@@ -6,5 +6,6 @@ Use the EVO skill in this project (`.claude/skills/evo/`) as the governing workf
 
 - Make assumptions explicit and verify any that affect correctness.
 - Prefer minimal, non-redundant actions; stop after the first complete solution.
+- Prefer in-memory Prolog execution (`evo_run.py --kb-b64`) and do not create ad-hoc `*.pl` KB files unless explicitly requested.
 - Obey project agent rules (`AGENTS.md`) and avoid destructive commands without confirmation.
 
