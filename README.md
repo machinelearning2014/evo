@@ -39,6 +39,23 @@ For the fully automated EVO workflow (including local Prolog execution), you mus
 
 EVO uses `prolog-runner` under the hood to execute Prolog and return results as JSON.
 
+### Install SWI-Prolog (required by `prolog-runner`)
+
+`prolog-runner` shells out to SWI-Prolog (`swipl`). Install it and make sure `swipl` is on your `PATH`.
+
+- Windows (choose one):
+  - Winget: `winget install --id SWI-Prolog.SWI-Prolog -e`
+  - Chocolatey: `choco install swi-prolog`
+  - Installer: install from the SWI-Prolog website and select the option to add it to `PATH` (or add it manually).
+- macOS:
+  - Homebrew: `brew install swi-prolog`
+
+Verify:
+
+```bash
+swipl --version
+```
+
 ### File roles
 
 - `.codex/skills/evo/SKILL.md`
