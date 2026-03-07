@@ -1,0 +1,266 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{fontspec}
+\setmainfont{Georgia}
+\setmonofont[Scale=0.85]{Courier New}
+\usepackage{geometry}
+\geometry{a4paper, top=25mm, bottom=25mm, left=28mm, right=28mm}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{parskip}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{abstract}
+
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue, citecolor=black}
+
+\definecolor{codebg}{rgb}{0.97,0.97,0.97}
+\definecolor{codeframe}{rgb}{0.75,0.75,0.75}
+\lstset{
+  backgroundcolor=\color{codebg},
+  frame=single,
+  rulecolor=\color{codeframe},
+  basicstyle=\small\ttfamily,
+  breaklines=true,
+  keepspaces=true,
+  columns=flexible,
+  tabsize=2,
+}
+
+\titleformat{\section}{\large\bfseries\raggedright}{}{0em}{}[\vspace{-4pt}\rule{\linewidth}{0.6pt}]
+\titleformat{\subsection}{\normalsize\bfseries\itshape}{}{0em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries}{}{0em}{}
+\titlespacing*{\section}{0pt}{18pt}{6pt}
+\titlespacing*{\subsection}{0pt}{12pt}{4pt}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{7pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\small\itshape EVO Skill: Prolog-First Verification in CLI Agents}
+\cfoot{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\setlength{\headheight}{14pt}
+
+\renewcommand{\abstractnamefont}{\normalfont\bfseries}
+\renewcommand{\abstracttextfont}{\normalfont\small}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\bfseries EVO Skill: Explicit-Assumption Verification Orchestrator as a CLI-Installable Toolchain}
+\end{center}
+\bigskip
+
+\medskip\noindent\rule{\linewidth}{0.4pt}\medskip
+
+\begin{abstract}
+This paper describes the \textbf{EVO Skill}---a practical packaging of EVO (Explicit-assumption Verification Orchestrator) as an installable skill for agent CLIs. EVO inverts the dominant ``LLM-first'' pattern by requiring that conclusions be \textit{derived} (not merely explained) from a symbolic model, with assumptions made explicit, consistency verified, and assumption-dependence tested. The EVO Skill operationalizes this protocol by coupling a strict \texttt{default\_prompt} with an executable local toolchain: a minimal Prolog harness for proof tracing and inconsistency detection, a Python runner that orchestrates the harness, and a companion \texttt{prolog-runner} skill that executes SWI-Prolog and returns JSON bindings. We document the formal model, the mandatory workflow (including solution classification and uniqueness rules), and the concrete file-level implementation for Codex CLI and Claude Code.
+\end{abstract}
+\noindent\textbf{Keywords:} autonomous reasoning, Prolog-first, explicit assumptions, inconsistency checking, proof traces, assumption-dependence testing, agent skills, CLI automation.
+
+\medskip\noindent\rule{\linewidth}{0.4pt}\medskip
+
+\section{1 Introduction}
+
+Large language models are fluent but not inherently verifiable: they can produce plausible narratives that are logically inconsistent, assumption-laden, or unsupported by executable evidence. EVO (Explicit-assumption Verification Orchestrator) addresses this by defining a strict protocol for what counts as reasoning and by forcing all authority to come from derivation.
+
+This document focuses on the \textbf{EVO Skill}: a concrete packaging of EVO for agent CLIs. The skill is deliberately split into:
+\begin{enumerate}[leftmargin=*,topsep=2pt,itemsep=2pt]
+\item \textbf{Normative layer (protocol):} encoded in the EVO agent \texttt{default\_prompt} (Codex/OpenAI agent manifest), which prescribes a mandatory workflow and forbids ``from memory'' conclusions.
+\item \textbf{Executable layer (toolchain):} a minimal Prolog harness and a Python orchestrator that produce auditable artifacts (proof traces, inconsistency checks, assumption-drop tests) as machine-readable JSON.
+\end{enumerate}
+
+\section{2 Related Work (Brief)}
+
+EVO is a neuro-symbolic design in the broad sense (symbolic reasoning with external knowledge acquisition), but it differs from most hybrids by making the symbolic component primary rather than a post-hoc validator. While theorem provers and logic programming systems provide rigorous reasoning, they often lack a practical integration path into general-purpose coding workflows. EVO targets that gap by turning a verification discipline into a ``skill'' that can be installed into CLI agents.
+
+\section{3 System Architecture of the EVO Skill}
+
+The EVO Skill is implemented as two sibling skills installed under the CLI's skills directory:
+\begin{itemize}[leftmargin=*,topsep=2pt,itemsep=2pt]
+\item \texttt{evo/}: the EVO agent prompt, harness runner, and Prolog references.
+\item \texttt{prolog-runner/}: a SWI-Prolog execution wrapper returning JSON solutions.
+\end{itemize}
+
+Conceptually, the flow is:
+\begin{enumerate}[leftmargin=*,topsep=2pt,itemsep=2pt]
+\item The EVO agent prompt requires Prolog-first formalization and derivation.
+\item The agent produces or updates a task-specific Prolog KB.
+\item The runner executes the harness against that KB (derivations + checks).
+\item The agent translates the resulting artifacts into a natural-language answer with an explicit status label.
+\end{enumerate}
+
+\section{4 Formal Model (EVO)}
+
+\subsection{4.1 Knowledge Base Structure}
+
+A knowledge base (KB) in EVO can be described as a tuple $\mathcal{K} = (\mathcal{F}, \mathcal{R}, \mathcal{A}, \mathcal{C})$ where:
+\begin{itemize}[leftmargin=*,topsep=2pt,itemsep=2pt]
+\item $\mathcal{F}$ is a set of \textbf{facts} (ground atomic formulas).
+\item $\mathcal{R}$ is a set of \textbf{rules} (typically Horn clauses).
+\item $\mathcal{A}$ is a set of \textbf{assumptions} (formulas treated as true for a particular inference but explicitly toggleable).
+\item $\mathcal{C}$ is a set of \textbf{consistency constraints} (integrity rules that must not be violated).
+\end{itemize}
+
+In the EVO harness, assumptions are activated via \texttt{enabled\_assumption/1} and tested via derivations under different enabled sets.
+
+\subsection{4.2 Proof-Traced Derivation}
+
+EVO requires that conclusions are not merely stated but derived with a proof trace. The Prolog harness provides a meta-interpreter \texttt{prove(Goal, Proof)} that records why each goal holds (e.g., observation, claim, premise, rule application, enabled assumption). A conclusion is accepted only if the agent can derive it via:
+\begin{center}
+\texttt{conclusion(Answer)} together with \texttt{prove(conclusion(Answer), Proof)}.
+\end{center}
+
+\subsection{4.3 Assumptions as First-Class Objects}
+
+EVO treats assumptions as explicit inference bridges, not background context. Any inference not strictly entailed by $\mathcal{F}\cup\mathcal{R}$ must be represented as an assumption in $\mathcal{A}$ and must be testable by removal or substitution. Hidden bridges (e.g., ``is $\Rightarrow$ ought''; ``ideal $\Rightarrow$ actual'') are forbidden.
+
+\subsection{4.4 Consistency Constraints}
+
+Before responding, EVO must check whether the KB is inconsistent. In the harness this is expressed via \texttt{constraint/2} (a named violating goal) and optionally \texttt{contradiction/2} (two goals that should not hold together). The required rule is: never answer from an inconsistent KB.
+
+\section{5 The Explicit-Assumption Verification Workflow}
+
+\subsection{5.1 ``What counts as reasoning''}
+
+The EVO agent prompt defines three statuses:
+\begin{itemize}[leftmargin=*,topsep=2pt,itemsep=2pt]
+\item \textbf{SOLVED:} at least one conclusion is derivable with proof, the KB is consistent, assumption-dependence testing is completed for key conclusions, and any uniqueness claim is proven.
+\item \textbf{CANDIDATE:} a plausible conclusion exists but one of the required gates is incomplete (e.g., uniqueness unproven, incomplete formalization).
+\item \textbf{MAPPED:} no conclusion was derived; the output is exploratory enumeration, categorization, or partial analysis.
+\end{itemize}
+
+\subsection{5.2 Mandatory steps (condensed)}
+
+The EVO prompt prescribes a mandatory workflow that can be summarized as:
+\begin{enumerate}[leftmargin=*,topsep=2pt,itemsep=2pt]
+\item \textbf{Formalize:} translate the task into a Prolog KB with observations/claims/premises, rules, explicit assumptions, and constraints; define a \texttt{conclusion/1} goal.
+\item \textbf{Derive:} attempt to derive all relevant conclusions with proof traces.
+\item \textbf{Consistency check:} run \texttt{inconsistent} and repair or report contradictions; never answer from an inconsistent KB.
+\item \textbf{Assumption-dependence test:} re-derive key conclusions while disabling assumptions one-by-one; label conclusions robust vs assumption-dependent.
+\item \textbf{Tool usage (facts only):} external tools may supply missing facts or primitive computations, but must not replace Prolog derivation; tool outputs must be injected as facts before influencing conclusions.
+\item \textbf{Uniqueness discipline:} ``the only'' requires proof (exhaustive search or completeness argument); otherwise downgrade to candidate and state limitations.
+\item \textbf{Response format:} output must be natural language (no raw Prolog), include assumptions and confidence status, and list sources when external URLs were used.
+\end{enumerate}
+
+\subsection{5.3 Paradox vs inconsistency (interpretation rule)}
+
+EVO distinguishes:
+\begin{itemize}[leftmargin=*,topsep=2pt,itemsep=2pt]
+\item \textbf{Inconsistency:} a constraint is violated or an explicit contradiction is derivable. This halts conclusions until repaired or reported.
+\item \textbf{Paradox/tension:} a conclusion exists only under certain assumptions and disappears when those assumptions are removed. This must be reported as assumption-dependent rather than as a hard contradiction.
+\end{itemize}
+
+\section{6 Tool Integration Protocol (Skill-Level)}
+
+The EVO prompt restricts tool usage to fact acquisition, while Prolog remains the reasoner. In the EVO Skill implementation, external outputs are intended to become inputs to Prolog derivation (rather than being treated as conclusions directly). A typical two-stage pattern is:
+\begin{enumerate}[leftmargin=*,topsep=2pt,itemsep=2pt]
+\item \textbf{Evidence injection:} external outputs (files, command output, web results) are summarized as Prolog terms (often \texttt{observation/1}, \texttt{claim/1}, or domain-specific facts) so that they can participate in derivations.
+\item \textbf{Re-derivation:} conclusions are then (re)derived in Prolog using those injected terms, producing proof traces that justify the final answer.
+\end{enumerate}
+
+In practice, the EVO Skill's local derivation pipeline is executed by two scripts:
+\begin{itemize}[leftmargin=*,topsep=2pt,itemsep=2pt]
+\item \texttt{evo/scripts/evo\_run.py}: orchestrates the harness and assumption-drop tests.
+\item \texttt{prolog-runner/scripts/run\_prolog.py}: executes SWI-Prolog (\texttt{swipl}) and returns JSON variable bindings.
+\end{itemize}
+
+\section{7 Implementation Details (Codex CLI and Claude Code)}
+
+\subsection{7.1 Codex/OpenAI agent definition}
+
+The file \texttt{agents/openai.yaml} defines the EVO agent identity and, critically, contains a large \texttt{default\_prompt} that encodes the EVO workflow and response constraints. The prompt is the normative layer: it dictates what the agent must do and what it must not do (e.g., no raw Prolog in the final response).
+
+\subsection{7.2 Prolog harness (\texttt{references/evo\_harness.pl})}
+
+The harness is intentionally minimal and provides:
+\begin{itemize}[leftmargin=*,topsep=2pt,itemsep=2pt]
+\item \texttt{prove/2}: proof tracing meta-interpreter.
+\item \texttt{conclusion\_with\_proof/2}: derive \texttt{conclusion(Answer)} with proof trace.
+\item \texttt{inconsistent/0}: detect constraint violation or explicit contradiction via the same derivation semantics.
+\end{itemize}
+
+\subsection{7.3 Runner orchestration (\texttt{scripts/evo\_run.py})}
+
+The runner constructs a temporary Prolog program by concatenating:
+\begin{enumerate}[leftmargin=*,topsep=2pt,itemsep=2pt]
+\item the harness code,
+\item the task KB (from files and/or inline text),
+\item injected \texttt{enabled\_assumption(Name).} facts.
+\end{enumerate}
+
+It then executes:
+\begin{itemize}[leftmargin=*,topsep=2pt,itemsep=2pt]
+\item \texttt{inconsistent.}
+\item \texttt{conclusion\_with\_proof(Answer, Proof).}
+\end{itemize}
+
+and performs per-assumption removal tests when assumptions are enabled. The output is a single JSON payload containing raw outputs and a summarized list of conclusions, proofs, and robustness tests.
+
+\subsection{7.4 Template KB (\texttt{references/template\_kb.pl})}
+
+The template shows the intended structure of task KBs: observations/claims, named rules, optional assumptions, constraints/contradictions, and a required \texttt{conclusion/1} predicate.
+
+\subsection{7.5 Claude Code}
+
+Claude Code can load the EVO instructions as a skill and/or a sub-agent definition. When local command execution is enabled, Claude can run the same harness toolchain. When command execution is disabled, the protocol still applies, but the user must run the local runner and provide JSON outputs for the agent to interpret.
+
+\section{8 Worked Example (Minimal)}
+
+The following KB sketches a tiny problem where a conclusion depends on an assumption. It is written in the style expected by the included harness: derivations are expressed via \texttt{rule/3} and \texttt{assumption/2} facts, and the derived target is a \texttt{conclusion(...)} goal.
+
+\begin{lstlisting}[language=Prolog]
+% Observations
+observation(rained_last_night).
+
+% Rules
+rule(wet_grass_from_rain, wet_grass, [rained_last_night]).
+rule(slippery, slippery_path, [wet_grass]).
+
+% Assumption (toggleable)
+assumption(sprinkler_on, wet_grass).
+
+% Conclusion must be derivable via rule/3 for the harness proof tracer
+rule(conclude, conclusion(slippery_path), [slippery_path]).
+\end{lstlisting}
+
+With \texttt{sprinkler\_on} enabled (via an injected \texttt{enabled\_assumption(sprinkler\_on).} fact), \texttt{wet\_grass} can still be derived even if \texttt{rained\_last\_night} were not present; removing that assumption can cause \texttt{slippery\_path} to become underivable. EVO requires that this dependence be tested and reported as assumption-dependent rather than being presented as unconditional.
+
+\section{9 Limitations and Future Work}
+
+\begin{itemize}[leftmargin=*,topsep=2pt,itemsep=2pt]
+\item \textbf{Modeling overhead:} formalization into a KB requires discipline and time.
+\item \textbf{Coverage limits:} some domains require richer libraries or ontologies to be formalized efficiently.
+\item \textbf{Search complexity:} large rule sets can create expensive search; the harness is minimal and does not include advanced optimizations (e.g., tabling).
+\item \textbf{Operational dependencies:} automation requires SWI-Prolog installed and the CLI permitting local command execution.
+\end{itemize}
+
+\section{10 Conclusion}
+
+The EVO Skill turns a strict explicit-assumption verification protocol into a reproducible CLI toolchain. Its distinguishing property is not simply ``using Prolog'', but enforcing: (i) derivations with proof traces, (ii) explicit, testable assumptions, (iii) consistency gates, (iv) assumption-dependence testing, and (v) strict outcome labeling and uniqueness discipline. Packaging these constraints alongside executable tooling makes the workflow auditable and repeatable in real agent-driven coding sessions.
+
+\medskip\noindent\rule{\linewidth}{0.4pt}\medskip
+
+\section{References}
+
+[1] L. Sterling and E. Shapiro, \textit{The Art of Prolog}. MIT Press, 1994.
+
+[2] J. W. Lloyd, \textit{Foundations of Logic Programming}. Springer, 1987.
+
+[3] SWI-Prolog, ``SWI-Prolog Reference Manual,'' \url{https://www.swi-prolog.org/}.
+
+\medskip\noindent\rule{\linewidth}{0.4pt}\medskip
+
+\textbf{Author Note:} This paper is an implementation-oriented restatement of EVO as packaged in the EVO Skill (agent prompt + harness + runner). It is intended to complement the conceptual EVO paper by specifying how the protocol is operationalized in Codex CLI and Claude Code via installable skill folders.
+
+\textbf{License:} CC-BY-4.0.
+
+\end{document}
