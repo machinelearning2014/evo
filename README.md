@@ -26,27 +26,18 @@ EVO forces a "derive, verify, then answer" loop:
 
 In Codex CLI, EVO is implemented as a skill folder plus an agent definition and a small Prolog execution toolchain.
 
-### Required installs (global Codex skills)
+### Installation (Codex CLI)
 
-For the fully automated EVO workflow (including local Prolog execution), you must have **both** of these global skill folders installed:
+EVO is fully automated only when Codex can execute local commands and both required skills are installed.
 
-- Windows:
-  - `%USERPROFILE%\.codex\skills\evo\` (e.g. `C:\Users\<you>\.codex\skills\evo\`)
-  - `%USERPROFILE%\.codex\skills\prolog-runner\`
-- macOS/Linux:
-  - `~/.codex/skills/evo/`
-  - `~/.codex/skills/prolog-runner/`
-
-EVO uses `prolog-runner` under the hood to execute Prolog and return results as JSON.
-
-### Install SWI-Prolog (required by `prolog-runner`)
+#### Step 1: Install SWI-Prolog (required by `prolog-runner`)
 
 `prolog-runner` shells out to SWI-Prolog (`swipl`). Install it and make sure `swipl` is on your `PATH`.
 
 - Windows (choose one):
   - Winget: `winget install --id SWI-Prolog.SWI-Prolog -e`
   - Chocolatey: `choco install swi-prolog`
-  - Installer: install from the SWI-Prolog website and select the option to add it to `PATH` (or add it manually).
+  - Installer: install from the SWI-Prolog website and enable "add to PATH" (or add it manually).
 - macOS:
   - Homebrew: `brew install swi-prolog`
 
@@ -55,6 +46,41 @@ Verify:
 ```bash
 swipl --version
 ```
+
+#### Step 2: Install the required Codex skills (`evo` + `prolog-runner`)
+
+You must have **both** skill folders installed for the automated EVO workflow:
+
+- `evo` (the workflow + harness runner)
+- `prolog-runner` (executes `swipl` and returns JSON bindings)
+
+##### Global install (recommended)
+
+Install into your global Codex skills directory:
+
+- Windows:
+  - `%USERPROFILE%\.codex\skills\evo\` (e.g. `C:\Users\<you>\.codex\skills\evo\`)
+  - `%USERPROFILE%\.codex\skills\prolog-runner\`
+- macOS/Linux:
+  - `~/.codex/skills/evo/`
+  - `~/.codex/skills/prolog-runner/`
+
+From this repo, copy these folders into your global location:
+
+- `.codex/skills/evo/`
+- `.codex/skills/prolog-runner/`
+
+#### Step 3: Confirm files are present
+
+After installing, you should have (either globally or in your project):
+
+```text
+.codex/skills/
+|- evo/
+`- prolog-runner/
+```
+
+EVO uses `prolog-runner` under the hood to execute Prolog and return results as JSON.
 
 ### File roles
 
@@ -120,7 +146,31 @@ python ~/.codex/skills/evo/scripts/evo_run.py --kb-b64 <BASE64_UTF8_KB>
 
 ## Claude Code CLI implementation
 
-Claude Code uses **project-local** configuration under `.claude/`.
+Claude Code can use the same EVO workflow via a global (recommended) or project-local install.
+
+### Installation (Claude Code)
+
+#### Global install (recommended)
+
+Install into your global Claude directories:
+
+- Windows:
+  - Skills: `%USERPROFILE%\.claude\skills\evo\` and `%USERPROFILE%\.claude\skills\prolog-runner\`
+  - Agent: `%USERPROFILE%\.claude\agents\evo.md`
+- macOS/Linux:
+  - Skills: `~/.claude/skills/evo/` and `~/.claude/skills/prolog-runner/`
+  - Agent: `~/.claude/agents/evo.md`
+
+From this repo, copy:
+
+- `.claude/skills/evo/` and `.claude/skills/prolog-runner/` into your global skills directory
+- `.claude/agents/evo.md` into your global agents directory
+
+EVO's harness runner (`scripts/evo_run.py`) expects `prolog-runner` to be installed in the **same** `skills/` directory tree (so it can find `prolog-runner/scripts/run_prolog.py`).
+
+#### Project-local (optional)
+
+Copy this repo's `.claude/` folder into your project root.
 
 ### Files and how they work
 
