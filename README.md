@@ -29,37 +29,6 @@ EVO ("Explicit-assumption Verification Orchestrator") is a disciplined operating
 
 This repo packages that workflow as a `SKILL.md` prompt so Codex CLI and Claude Code can apply it consistently.
 
-## EVO rules (from the skill prompt)
-
-The canonical skill lives at `skills/evo/SKILL.md`. In practical terms, EVO requires the agent to follow these rules:
-
-### 1) Assumptions are explicit
-
-For any missing detail that impacts correctness, the agent should:
-
-1. Write the assumption.
-2. Explain the impact if the assumption is wrong.
-3. Validate quickly from local evidence (repo files, minimal command).
-4. If validation is not possible locally, ask the user.
-
-### 2) Non-redundancy (no duplicate work)
-
-- Don't re-run equivalent commands "just to be safe".
-- Avoid reading many files when a search can narrow scope.
-- Avoid implementing the same logic twice in two places.
-
-### 3) Safety defaults
-
-- Don't leak secrets; redact credentials in outputs.
-- Ask before destructive operations or anything irreversible.
-
-### 4) Execution loop
-
-1. Discover minimal context.
-2. Implement minimal change.
-3. Validate with the most specific test.
-4. Summarize result and next actions.
-
 ## Behavior checklist (what you should notice)
 
 When EVO is active, the agent should:
@@ -156,3 +125,4 @@ Only edit `skills/evo/` directly, then sync copies:
 - Skill definition (canonical): `skills/evo/SKILL.md`
 - Examples: `skills/evo/EXAMPLES.md`
 - Maintenance notes: `MAINTAINING.md`
+
