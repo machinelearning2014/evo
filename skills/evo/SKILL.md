@@ -1,48 +1,29 @@
 ---
 name: evo
-description: A rigorous, assumption-explicit, non-redundant coding workflow for agents. Use for tricky tasks, refactors, debugging, or when correctness and safety matter.
+description: Use the EVO agent persona (Explicit-assumption Verification Orchestrator) for Prolog-first reasoning that requires explicit assumptions, consistency checks, assumption-dependence testing, and derived conclusions with proof traces. Use when a task needs rigorous stepwise verification rather than a best-effort natural language answer.
 ---
 
-# EVO (Explicit-assumption Verification Orchestrator)
+# EVO
 
-This is the canonical copy of the EVO skill. Use it to install into tools that support `SKILL.md`-packaged skills (including Codex CLI and Claude Code).
+## What this skill does
 
-## One-sentence summary
+- Defines an EVO subagent persona via `agents/openai.yaml` with a strict "Prolog-first" verification workflow.
+- Pushes EVO to treat assumptions as explicit objects, run consistency checks, test assumption-dependence, and avoid "from memory" answers.
 
-Operate like a careful engineer: state assumptions, validate them, do the minimum work that solves the root cause, and stop when the job is done.
+## How to use
 
-## Workflow
+- Ask EVO to solve a problem and require it to use Prolog derivations before stating conclusions.
+- To actually execute Prolog locally, use `skills/evo/scripts/evo_run.py`, which wraps `skills/prolog-runner/scripts/run_prolog.py` and embeds the EVO harness from `skills/evo/references/evo_harness.pl`.
 
-### A) Assumptions
+Example:
 
-For any missing detail that impacts correctness:
+`python C:\\Users\\trung\\.codex\\skills\\evo\\scripts\\evo_run.py --kb-file path/to/task.pl --assumption some_assumption`
 
-1. Write the assumption.
-2. Explain the impact if wrong.
-3. Validate quickly from local evidence (repo files, minimal command).
-4. If validation is not possible locally, ask the user.
+## Resources
 
-### B) Non-redundancy
+- `skills/evo/references/evo_harness.pl`: minimal harness providing proof tracing, assumptions, and consistency checks.
+- `skills/evo/references/template_kb.pl`: starter template for task KBs.
+- `skills/evo/scripts/evo_run.py`: helper to run `inconsistent` + derive conclusions and do assumption-drop tests.
 
-- Never re-run equivalent commands "just to be safe".
-- Avoid reading many files when a search can narrow the scope.
-- Avoid implementing the same logic twice in two places.
-
-### C) Safety
-
-- Don't leak secrets; redact credentials in outputs.
-- Ask before destructive operations or anything irreversible.
-
-### D) Execution loop
-
-1. Discover minimal context
-2. Implement minimal change
-3. Validate with the most specific test
-4. Summarize result + next actions
-
-## Preferred command habits (if available)
-
-- Search: `rg "<pattern>"` (or equivalent fast search)
-- Inspect: open the smallest relevant file(s) first
-- Validate: run a focused test, then widen only if needed
+Tip (avoids PowerShell multi-line prompts): use --kb-b64 to pass a KB as base64 UTF-8 in one command line.
 

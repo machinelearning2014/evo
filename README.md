@@ -2,139 +2,103 @@
 
 # EVO Skill
 
-An explicit-assumption, non-redundant workflow packaged as an **Agent Skill** for **Codex CLI** and **Claude Code**.
+EVO (Explicit-assumption Verification Orchestrator) is a Prolog-first reasoning workflow packaged for **Codex CLI (OpenAI)** and **Claude Code CLI**.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 ![Type: Agent Skill](https://img.shields.io/badge/Type-Agent%20Skill-blue)
 ![Works with: Codex CLI](https://img.shields.io/badge/Works%20with-Codex%20CLI-black)
 ![Works with: Claude Code](https://img.shields.io/badge/Works%20with-Claude%20Code-6E56CF)
 
-[![Install: Project](https://img.shields.io/badge/Install-Project%20local-2ea44f)](#option-a-recommended-project-local)
-[![Install: Global](https://img.shields.io/badge/Install-Global-2ea44f)](#option-b-global-install)
-[![Sync](https://img.shields.io/badge/Maintain-Sync%20copies-9cf)](#maintaining)
-[![Contributing](https://img.shields.io/badge/Contribute-Guidelines-orange)](CONTRIBUTING.md)
-
 </div>
 
-## What EVO does 
+## What EVO does
 
-EVO ("Explicit-assumption Verification Orchestrator") is a disciplined operating mode for coding agents. It makes the agent behave more like a careful engineer:
+EVO forces a "derive, verify, then answer" loop:
 
-- **States assumptions** whenever requirements or context are ambiguous.
-- **Validates assumptions** using the smallest possible evidence (repo files, minimal commands, targeted tests).
-- **Avoids redundant work** (no "double solving", no repeated commands just for confidence).
-- **Optimizes for root-cause fixes** rather than surface patches.
-- **Defaults to safe actions** and asks before destructive or irreversible operations.
-- **Stops when done** (implementation + validation), instead of over-building.
+- Treats assumptions as explicit objects (not hidden intuition).
+- Requires derivations with proof traces (Prolog-first).
+- Runs consistency checks before answering.
+- Tests whether conclusions survive removing assumptions (assumption-dependence).
+- Prevents "answering from memory" when a tool-backed derivation is required.
+- Produces a natural-language final answer (no raw Prolog) and lists sources when web tools are used.
 
-The OpenAI/Codex agent manifest at `skills/evo/agents/openai.yaml` also sets a strict `default_prompt` that enforces a Prolog-first “derive with proof traces” workflow, forbids answering from memory, requires consistency checks and assumption-dependence testing, and forces the final output to be natural-language (no raw Prolog) with sources listed when web tools are used.
+## Codex CLI (OpenAI) implementation
 
-This repo packages that workflow as a `SKILL.md` prompt so Codex CLI and Claude Code can apply it consistently.
+In Codex CLI, EVO is implemented as a skill folder plus an agent definition and a small Prolog execution toolchain.
 
-## Behavior checklist (what you should notice)
+### File roles
 
-When EVO is active, the agent should:
+- `.codex/skills/evo/SKILL.md`
+  - The skill entrypoint you install into Codex (`~/.codex/skills/evo/` or project-local).
+  - Explains what EVO is and how to run the local Prolog harness helper (`scripts/evo_run.py`).
 
-1. Clarify goal and success criteria (what "done" means).
-2. List high-impact assumptions (and how it will verify them).
-3. Search/inspect minimally (prefer fast search over opening many files).
-4. Implement the smallest change that fixes the root cause.
-5. Validate with the most targeted command available (single test, narrow build, etc.).
-6. Report what changed, what was run, and what remains (if anything).
+- `.codex/skills/evo/agents/openai.yaml`
+  - Defines the "EVO" agent card used by OpenAI/Codex integrations.
+  - Contains the **default_prompt** (the full EVO workflow rules) that instructs Prolog-first derivation, proof tracing, consistency checks, assumption testing, and output formatting constraints.
 
-## What's included
+- `.codex/skills/evo/scripts/evo_run.py`
+  - A Python helper that runs Prolog queries through the `prolog-runner` skill (`skills/prolog-runner/scripts/run_prolog.py`).
+  - It builds a temporary Prolog program by concatenating:
+    1) the EVO harness (`references/evo_harness.pl`)
+    2) your task KB (from `--kb-file`, `--kb`, and/or `--kb-b64`)
+    3) injected enabled assumptions (`enabled_assumption(Name).`)
+  - Outputs a single JSON object containing:
+    - `inconsistent` (whether a constraint/contradiction is derivable)
+    - `conclusions` (answers with proof traces)
+    - `assumption_dependence` (whether each conclusion survives removing assumptions)
 
-- `.claude/skills/evo/` - Claude Code project skill
-- `.codex/skills/evo/` - Codex CLI project skill
-- `.claude/commands/evo.md` - optional Claude Code slash command (`/evo`)
-- `.claude/agents/evo.md` - optional Claude Code sub-agent definition for "EVO"
-- `skills/evo/` - canonical skill source (edit here first)
+- `.codex/skills/evo/references/evo_harness.pl`
+  - The core Prolog harness implementing:
+    - `prove/2` proof tracing
+    - `conclusion_with_proof/2` to derive `conclusion(Answer)` with proof steps
+    - `inconsistent/0` to detect violated constraints or explicit contradictions
+    - a lightweight `solved/2` gate (derivable conclusion + consistent)
 
-## Agent definitions (EVO)
+- `.codex/skills/evo/references/template_kb.pl`
+  - A starter knowledge base template showing the expected predicates (observations, rules, assumptions, constraints, and `conclusion/1`).
 
-For this repo's setup, the **agent-definition files are required** (not optional). They define the "EVO" agent entrypoint that loads and applies the workflow in `skills/evo/SKILL.md`.
+### How it operates (end-to-end)
 
-- `skills/evo/agents/openai.yaml` - OpenAI/Codex-oriented agent manifest for "EVO" (points at `skills/evo/SKILL.md`).
-- `.claude/agents/evo.md` - Claude Code CLI sub-agent definition for "EVO" (Markdown with YAML frontmatter).
+1. Codex loads the EVO skill (`.codex/skills/evo/SKILL.md`) and/or uses the EVO agent definition (`.codex/skills/evo/agents/openai.yaml`).
+2. When you want a concrete, locally-checkable derivation, you run `scripts/evo_run.py` with a task KB.
+3. `evo_run.py` embeds `evo_harness.pl` + your KB + enabled assumptions, then calls the shared Prolog runner.
+4. The result is machine-readable JSON you can use to:
+   - refuse answers when inconsistent
+   - present derived conclusions with proof traces
+   - mark conclusions as assumption-dependent or robust
 
-If your environment expects a different schema for agent manifests, keep the intent the same: the "EVO" agent should reference and enforce the rules in `skills/evo/SKILL.md`.
+### Example usage
 
-## Quick start
+Run a KB file and enable an assumption:
 
-If you want this skill **available in a specific project repo**, copy these folders into that repo root:
-
-- `.claude/`
-- `.codex/`
-
-If you want it **available globally** for your user account, copy `skills/evo/` into your CLI's global skills directory.
-
-## Install / Use
-
-### Option A (recommended): Project-local
-
-Copy the tool folders into your target project repository root:
-
-- Copy `.claude/` to `<your-project>/.claude/`
-- Copy `.codex/` to `<your-project>/.codex/`
-
-Then:
-
-- Claude Code: run `claude` in that project; it will detect `.claude/skills/evo/`.
-- Codex CLI: run `codex` in that project; it will detect `.codex/skills/evo/`.
-
-### Option B: Global install
-
-#### Claude Code
-
-Copy `skills/evo/` to:
-
-- macOS/Linux: `~/.claude/skills/evo/`
-- Windows: `%USERPROFILE%\.claude\skills\evo\`
-
-#### Codex CLI
-
-Copy `skills/evo/` to:
-
-- macOS/Linux: `~/.codex/skills/evo/`
-- Windows: `%USERPROFILE%\.codex\skills\evo\`
-
-### Install scripts (optional)
-
-- PowerShell: `scripts/install.ps1`
-- Bash: `scripts/install.sh`
-
-They copy `skills/evo/` into `.claude/skills/evo/` and/or `.codex/skills/evo/` under your chosen project root.
-
-## Layout
-
-```text
-.
-|- skills/evo/               # canonical source (edit here)
-|- .claude/skills/evo/       # Claude Code project skill copy
-|- .codex/skills/evo/        # Codex CLI project skill copy
-`- scripts/                  # install + sync helpers
+```bash
+python ~/.codex/skills/evo/scripts/evo_run.py --kb-file path/to/task.pl --assumption some_assumption
 ```
 
-## Customizing EVO
+Pass KB content inline (base64 avoids shell quoting issues):
 
-Edit `skills/evo/SKILL.md`. Common tweaks:
+```bash
+python ~/.codex/skills/evo/scripts/evo_run.py --kb-b64 <BASE64_UTC8_KB>
+```
 
-- Make it stricter about asking questions vs making assumptions.
-- Add your org's coding standards and security rules.
-- Add project-specific "definition of done" (tests, formatting, CI).
+## Claude Code CLI implementation
 
-Then sync copies (below).
+Claude Code uses **project-local** configuration under `.claude/`.
 
-## Maintaining
+### Files and how they work
 
-Only edit `skills/evo/` directly, then sync copies:
+- `.claude/agents/evo.md`
+  - Defines a Claude Code sub-agent named "evo".
+  - This is the Claude equivalent of "pick the EVO agent persona": it instructs Claude to follow the EVO workflow when you invoke that agent.
 
-- PowerShell: `scripts/sync.ps1`
-- Bash: `scripts/sync.sh`
+- `.claude/skills/evo/SKILL.md`
+  - Ships the same EVO skill text for consistency across CLIs.
+  - Useful as a shared, version-controlled source of truth for the workflow rules.
 
-## Where the rules live
+- `.claude/commands/evo.md`
+  - Optional convenience command (a slash command) that tells Claude to apply the EVO workflow for the current request.
 
-- Skill definition (canonical): `skills/evo/SKILL.md`
-- Examples: `skills/evo/EXAMPLES.md`
-- Maintenance notes: `MAINTAINING.md`
+### Practical note about Prolog execution
+
+Claude Code can follow the EVO workflow instructions, but local Prolog execution is still done via `scripts/evo_run.py` (same as the Codex path) if you want tool-backed derivations with proof traces and consistency checks.
 
