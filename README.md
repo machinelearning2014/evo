@@ -1,6 +1,6 @@
 <div align="center">
 
-# EVO Logical Reasoning 
+# EVO - Logical Reasoning for AI Agents 
 **(Explicit-assumption Verification Orchestrator)**
 
 EVO is a Prolog-first reasoning workflow packaged as skills for **Codex CLI (OpenAI)** and **Claude Code CLI**.
