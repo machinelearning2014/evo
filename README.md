@@ -13,16 +13,29 @@ EVO (Explicit-assumption Verification Orchestrator) is a Prolog-first reasoning 
 
 ## What EVO does
 
-EVO's `default_prompt` (in `.codex/skills/evo/agents/openai.yaml`) enforces a strict Prolog-first workflow:
+EVO is a strict verification protocol for coding/reasoning tasks. The `default_prompt` in `.codex/skills/evo/agents/openai.yaml` forces the agent to treat "reasoning" as **derivation** (not explanation) and to follow a mandatory Prolog-first workflow.
 
-- **No "from memory" answers**: responses must be grounded in tool execution outputs.
-- **Formalize in Prolog**: encode observations/claims, rules, explicit assumptions, and constraints into a KB with a `conclusion/1` goal.
-- **Derive with proofs**: conclusions must be derivable with a proof trace (not just explained or enumerated).
-- **Consistency first**: always check `inconsistent` and never answer from an inconsistent KB.
-- **Assumption-dependence testing**: re-derive conclusions with assumptions removed; label conclusions as robust vs assumption-dependent.
-- **Tool usage is fact acquisition only**: other tools can supply facts/primitive computations, but Prolog remains the reasoner.
-- **Strict result labels**: every task is classified as `SOLVED`, `CANDIDATE`, or `MAPPED` (uniqueness requires proof).
-- **Natural-language output**: final answers must not include raw Prolog; include a `Sources:` section when external sources are used.
+At a high level, EVO turns your task into a Prolog knowledge base (KB), derives conclusions with proofs, verifies the KB is consistent, stress-tests which assumptions the conclusions depend on, and only then produces a natural-language answer.
+
+### The essence of EVO (what it enforces)
+
+- **Reasoning = derivation with proofs**: a task is only "solved" if a `conclusion(...)` can be derived from facts and rules with a proof trace; listing/guessing/explaining without derivation is not accepted.
+- **No "from memory" authority**: conclusions must be grounded in tool execution outputs (and when Prolog is used, grounded in Prolog derivations), not intuition/training-data recall.
+- **Assumptions are first-class**: any inference that is not strictly entailed must be declared as an assumption; hidden inference bridges are forbidden.
+- **Consistency before answers**: EVO must check for contradictions/constraint violations (`inconsistent`) and never answer from an inconsistent KB.
+- **Assumption-dependence testing is mandatory**: for each key conclusion, EVO re-derives it while disabling assumptions one-by-one, then labels conclusions as robust vs assumption-dependent.
+- **Tools are subordinate to Prolog**: other tools may be used only to acquire missing facts or primitive computations requested by the Prolog reasoning; they must not replace the derivation step.
+- **Strict outcome labeling**: every result must be labeled `SOLVED`, `CANDIDATE`, or `MAPPED`. Uniqueness claims are disallowed unless proven (e.g., exhaustive search or a completeness proof).
+- **Human-readable final output**: even though EVO reasons in Prolog internally, it must output plain English (no raw Prolog) and include a `Sources:` list when it used external URLs.
+
+### The mandatory workflow (condensed)
+
+1. **Formalize** the task into a Prolog KB: observations/claims/premises, inference rules, explicit assumptions, and constraints/contradictions, plus a `conclusion/1` goal.
+2. **Derive** conclusions as `conclusion(Answer)` together with a proof trace.
+3. **Check consistency** (`inconsistent`) and repair/report if inconsistent.
+4. **Test assumption-dependence** by disabling assumptions and re-deriving conclusions.
+5. **Classify** the outcome (`SOLVED`/`CANDIDATE`/`MAPPED`) and avoid uniqueness claims without proof.
+6. **Respond in natural language** with assumptions and (if applicable) a `Sources:` section.
 
 ## Codex CLI (OpenAI) implementation
 
