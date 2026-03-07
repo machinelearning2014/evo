@@ -16,7 +16,7 @@ An explicit-assumption, non-redundant workflow packaged as an **Agent Skill** fo
 
 </div>
 
-## What EVO does
+## What EVO does 
 
 EVO ("Explicit-assumption Verification Orchestrator") is a disciplined operating mode for coding agents. It makes the agent behave more like a careful engineer:
 
