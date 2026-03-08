@@ -12,6 +12,14 @@ EVO is a Prolog-first reasoning workflow packaged as skills for **Codex CLI (Ope
 
 </div>
 
+## Examples
+<img width="480" height="265" alt="image" src="https://github.com/user-attachments/assets/3f5d3d30-0ada-49c7-b200-7012bdd009f2" />
+
+<img width="1280" height="144" alt="image" src="https://github.com/user-attachments/assets/3b44a7d9-26bc-430a-857d-71c0e6396888" />
+
+<img width="873" height="420" alt="image" src="https://github.com/user-attachments/assets/802f56b9-951b-4f3c-97a8-d6cd4a0300ae" />
+
+
 ## What EVO does
 
 EVO is a strict verification protocol for coding/reasoning tasks. The `default_prompt` in `.codex/skills/evo/agents/openai.yaml` forces the agent to treat "reasoning" as **derivation** (not explanation) and to follow a mandatory Prolog-first workflow.
