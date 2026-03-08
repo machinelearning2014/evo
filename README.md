@@ -351,8 +351,12 @@ Bash:
 
 ```bash
 REPO=~/evo
-bash "$REPO/scripts/install.sh" both "$REPO"
+TARGET=both
+PROJECT_ROOT="$REPO"
+bash "$REPO/scripts/install.sh" "$TARGET" "$PROJECT_ROOT"
 ```
+
+`install.sh` uses positional arguments in this order: `<target> <project_root>`.
 
 Targets:
 - `codex`: install only `.codex` skill folders
