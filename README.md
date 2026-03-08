@@ -12,11 +12,10 @@ EVO is a Prolog-first reasoning workflow packaged as skills for **Codex CLI (Ope
 
 </div>
 
-## Examples
-<img width="480" height="265" alt="image" src="https://github.com/user-attachments/assets/3f5d3d30-0ada-49c7-b200-7012bdd009f2" />
-
-<img width="1280" height="144" alt="image" src="https://github.com/user-attachments/assets/3b44a7d9-26bc-430a-857d-71c0e6396888" />
-
+<img width="1338" height="728" alt="image" src="https://github.com/user-attachments/assets/f8adace3-17f0-4391-897c-d5281ed7d458" />
+<br>
+<img width="1417" height="160" alt="image" src="https://github.com/user-attachments/assets/18d65ba1-9dd5-4b7c-9282-df541d41eb8d" />
+<br>
 <img width="873" height="420" alt="image" src="https://github.com/user-attachments/assets/802f56b9-951b-4f3c-97a8-d6cd4a0300ae" />
 
 
