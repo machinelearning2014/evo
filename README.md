@@ -338,25 +338,36 @@ Use the repo scripts in `scripts/` to avoid manual copy drift.
 ### `install` scripts (initial setup)
 
 - Purpose: copy canonical skill content from `skills/evo/` plus `skills/prolog-runner/` into project `.claude` and/or `.codex` folders.
-- Also copies the Claude sub-agent file (`skills/evo/agents/claude.md`) to `.claude/agents/evo.md` when target includes Claude.
+- Also copies the Claude sub-agent file (`skills/evo/agents/claude.md`) to `.claude/agents/evo.md` when the install target includes Claude.
+
+Both scripts take the same two inputs:
+- install mode: `codex`, `claude`, or `both`
+- project root: the directory where `.claude/` and/or `.codex/` will be created
+
+The script itself is run from the EVO repo, but it installs files into the target project root.
+If you use the examples below as written, first change into the target project directory so `Get-Location` / `$PWD` points at the correct destination.
+
+Interface forms:
+- PowerShell: `install.ps1 -Target <install_mode> -ProjectRoot <project_root>`
+- Bash: `install.sh <install_mode> <project_root>`
 
 PowerShell:
 
 ```powershell
-$repo = Join-Path $env:USERPROFILE "evo"
-powershell -ExecutionPolicy Bypass -File (Join-Path $repo "scripts\\install.ps1") -Target both -ProjectRoot $repo
+$evoRepo = Join-Path $env:USERPROFILE "evo"
+$projectRoot = (Get-Location).Path
+powershell -ExecutionPolicy Bypass -File (Join-Path $evoRepo "scripts\\install.ps1") `
+  -Target both `
+  -ProjectRoot $projectRoot
 ```
 
 Bash:
 
 ```bash
-REPO=~/evo
-TARGET=both
-PROJECT_ROOT="$REPO"
-bash "$REPO/scripts/install.sh" "$TARGET" "$PROJECT_ROOT"
+EVO_REPO=~/evo
+PROJECT_ROOT="$PWD"
+bash "$EVO_REPO/scripts/install.sh" both "$PROJECT_ROOT"
 ```
-
-`install.sh` uses positional arguments in this order: `<target> <project_root>`.
 
 Targets:
 - `codex`: install only `.codex` skill folders
