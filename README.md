@@ -21,39 +21,53 @@ EVO is a Prolog-first reasoning workflow packaged as skills for **Codex CLI (Ope
 
 ## What EVO does
 
-EVO is a Prolog-first reasoning workflow packaged as a prompt-driven agent plus a small local verification toolchain. Its `default_prompt` in `.codex/skills/evo/agents/openai.yaml` tells the agent to treat reasoning as derivation rather than free-form explanation, while the local runner and harness provide concrete proof tracing and consistency checks.
+EVO is a skill that gives Codex or Claude a Prolog-first reasoning workflow plus the local files needed to execute that workflow. Functionally, it does three things:
 
-At a high level, EVO is designed to help an agent formalize a task as a Prolog knowledge base (KB), derive `conclusion(...)` answers with proof traces, check whether the KB is inconsistent, and optionally test whether conclusions survive dropping named assumptions. The strictest parts of the workflow come from the prompt; the executable guarantees come from the harness and runner.
+- **It supplies the EVO agent behavior** through the agent prompt in `.codex/skills/evo/agents/openai.yaml` and the equivalent Claude files, telling the model to reason by derivation, make assumptions explicit, check consistency, and translate results into plain language.
+- **It supplies a reusable Prolog harness** in `.codex/skills/evo/references/evo_harness.pl`, which defines the proof-tracing and consistency predicates the reasoning workflow depends on.
+- **It supplies a runnable helper** in `.codex/skills/evo/scripts/evo_run.py`, which loads the harness, combines it with a task KB, calls `prolog-runner`, and returns structured JSON with conclusions, proofs, and assumption-dependence results.
 
-### What is implemented
+In practice, EVO helps an agent take a task, represent it as a Prolog knowledge base, derive `conclusion(...)` answers with proof traces, check whether the KB is inconsistent, and optionally test whether conclusions still hold when named assumptions are removed. It does not automatically convert arbitrary prose into a KB on its own; the agent or user still has to provide that formalization.
 
-- **Prompt-level workflow policy**: the EVO prompt instructs the agent to use Prolog-first derivation, make assumptions explicit, avoid unsupported "from memory" claims, classify outcomes, and respond in natural language.
-- **Proof tracing**: the harness implements `prove/2` and `conclusion_with_proof/2`, so conclusions can be returned with proof steps.
-- **Consistency checks**: the harness implements `inconsistent/0` based on declared constraints and contradictions.
-- **Optional assumption-drop testing**: the runner can re-check whether derived conclusions survive when CLI-provided assumptions are removed one at a time.
-- **Lightweight solved gate**: the harness includes `solved/2`, but it is intentionally minimal: it checks only whether a conclusion is derivable with a proof and the KB is consistent.
+### What the EVO skill provides
 
-### What EVO does not hard-enforce in code
+- **Prompted reasoning rules** so the agent treats reasoning as derivation rather than unsupported explanation.
+- **A standard KB shape** based on observations, claims, premises, rules, assumptions, constraints, contradictions, and `conclusion/1`.
+- **Proof-producing derivation** through `prove/2` and `conclusion_with_proof/2`.
+- **Consistency checking** through `inconsistent/0`.
+- **Optional assumption-drop analysis** when assumptions are explicitly enabled on the runner command line.
+- **A lightweight solved gate** through `solved/2`, which checks only that a conclusion is derivable with a proof and that the KB is consistent.
 
-- **Automatic task formalization**: the repo does not include a compiler from arbitrary natural-language tasks into a KB. The agent is expected to do that work.
-- **Complete assumption discovery**: assumption testing only covers assumptions explicitly passed to `evo_run.py` with `--assumption`.
-- **Full solved/candidate/mapped certification**: those stricter labels are described in the prompt, but the harness itself does not prove formalization completeness or uniqueness.
-- **Answer blocking on inconsistency**: the runner reports inconsistency and conclusions in the same JSON payload; the agent is expected to treat inconsistency as a stop/report condition.
+### How it operates (end-to-end)
 
-### What it achieves in practice
+1. **The CLI loads the EVO skill files.**
+   Codex reads `.codex/skills/evo/SKILL.md` and `.codex/skills/evo/agents/openai.yaml`. Claude uses the corresponding `.claude` copies. This gives the model the EVO workflow instructions and points it at the local runner and harness files.
 
-- gives the agent a structured Prolog-first reasoning protocol
-- makes assumptions easier to expose and test explicitly
-- provides proof traces for derived conclusions
-- reduces unsupported narrative answers by grounding reasoning in tool outputs
+2. **The task is expressed as a Prolog KB.**
+   The agent or user writes a KB containing facts and rules for the task. In EVO terms, that usually means some combination of `observation/1`, `claim/1`, `premise/1`, `rule/3`, `assumption/2`, `constraint/2`, `contradiction/2`, and a `conclusion/1` goal. The starter file in `references/template_kb.pl` shows the expected shape.
 
-### The implemented workflow (condensed)
+3. **`evo_run.py` builds the executable Prolog program.**
+   The runner reads the harness from `references/evo_harness.pl`, then appends KB content from `--kb-file`, `--kb`, `--kb-b64`, and/or `--kb-stdin`. If `--assumption name` is provided, it injects `enabled_assumption(name).` facts into the generated program before execution.
 
-1. **Prepare a KB** with observations/claims/premises, rules, optional assumptions, optional constraints/contradictions, and a `conclusion/1` goal.
-2. **Run the harness** to derive `conclusion(Answer)` values together with proof traces.
-3. **Check consistency** with `inconsistent`.
-4. **Optionally test assumption dependence** by passing named assumptions and re-running with them removed one by one.
-5. **Have the agent interpret the results** according to the EVO prompt and present them in natural language.
+4. **The runner delegates execution to `prolog-runner`.**
+   `evo_run.py` locates `skills/prolog-runner/scripts/run_prolog.py` in the same skills tree and calls it as a subprocess. `prolog-runner` is the component that actually shells out to SWI-Prolog (`swipl`) and returns query results as JSON.
+
+5. **The harness runs the core EVO queries.**
+   The first query is `inconsistent.`, which checks whether any declared constraint is violated or any declared contradiction pair is simultaneously derivable. The second query is `conclusion_with_proof(Answer, Proof).`, which derives each conclusion and emits the proof steps that support it.
+
+6. **Optional assumption-dependence checks are run.**
+   If assumptions were enabled on the command line and conclusions were found, `evo_run.py` re-runs the derivation query multiple times, each time removing one enabled assumption from the injected set. It then records whether each conclusion still survives without that assumption. This test only covers assumptions explicitly passed to the runner.
+
+7. **The runner returns a single JSON payload.**
+   The output includes:
+   - `inconsistent`
+   - `inconsistent_raw`
+   - `conclusions_raw`
+   - `conclusions`
+   - `assumption_dependence`
+
+8. **The agent turns the JSON into the final response.**
+   EVO then uses the prompt rules to explain the derived conclusions in natural language, mention important assumptions, note whether conclusions look robust or assumption-dependent, and include sources when external web material was used.
 
 ## Install Scripts (recommended project setup)
 
@@ -232,17 +246,6 @@ EVO uses `prolog-runner` under the hood to execute Prolog and return results as 
 - `.codex/skills/prolog-runner/`
   - Companion skill required by EVO for local Prolog execution.
   - Provides `.codex/skills/prolog-runner/scripts/run_prolog.py`, which runs `swipl` and returns JSON bindings.
-
-### How it operates (end-to-end)
-
-1. Codex loads the EVO agent definition (`.codex/skills/evo/agents/openai.yaml`) and applies its `default_prompt` (the mandatory EVO workflow).
-2. EVO formalizes the task into a Prolog knowledge base (KB): observations/claims, rules, explicit assumptions, constraints/contradictions, and a `conclusion/1` goal (often starting from `references/template_kb.pl`).
-3. EVO **automatically runs the local harness** by invoking `.codex/skills/evo/scripts/evo_run.py` via the CLI's command/tool execution.
-4. `evo_run.py` embeds `references/evo_harness.pl` + the KB + enabled assumptions, then runs:
-   - `inconsistent.` (consistency check)
-   - `conclusion_with_proof(Answer, Proof).` (derivations with proof traces)
-   - assumption-drop rechecks (assumption-dependence testing) when assumptions were enabled
-5. EVO converts the JSON result into a natural-language response, including: conclusions, key assumptions, whether conclusions are robust vs assumption-dependent, and sources when web tools were used.
 
 If command/tool execution is not available in your Codex environment, EVO should fall back to asking you to run the same `evo_run.py` commands manually and paste the JSON output.
 
