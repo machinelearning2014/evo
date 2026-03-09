@@ -85,36 +85,13 @@ You must have **both** skill folders installed for the automated EVO workflow:
 - `evo` (the workflow + harness runner)
 - `prolog-runner` (executes `swipl` and returns JSON bindings)
 
-##### Project-level install (recommended)
+For a project-level install from this repo, use the `install` scripts in the `Install and Sync Scripts` section below.
+That is the canonical project-level setup path and avoids manual copy drift.
 
-From this repo, copy these folders into your project root:
+Expected project-level result inside the target project directory:
 
 - `.codex/skills/evo/`
 - `.codex/skills/prolog-runner/`
-
-Example copy commands:
-
-- Windows (PowerShell, run from `$env:USERPROFILE\\evo`):
-
-```powershell
-$repo = Join-Path $env:USERPROFILE "evo"
-Set-Location $repo
-New-Item -ItemType Directory -Force -Path ".\.codex\skills" | Out-Null
-Copy-Item -Recurse -Force ".\.codex\skills\evo" ".\.codex\skills\"
-Copy-Item -Recurse -Force ".\.codex\skills\prolog-runner" ".\.codex\skills\"
-```
-
-- macOS/Linux (bash/zsh, run from `~/evo`):
-
-```bash
-REPO=~/evo
-cd "$REPO"
-mkdir -p ./.codex/skills
-cp -R ./.codex/skills/evo ./.codex/skills/
-cp -R ./.codex/skills/prolog-runner ./.codex/skills/
-```
-
-Restart Codex CLI after installing/updating skills.
 
 ##### Global-level install (optional)
 
@@ -132,7 +109,7 @@ From this repo, copy these folders into your global skills directory:
 - `.codex/skills/evo/`
 - `.codex/skills/prolog-runner/`
 
-Example copy commands:
+Example copy commands from the EVO repo:
 
 - Windows (PowerShell, run from `$env:USERPROFILE\\evo`):
 
@@ -154,9 +131,11 @@ cp -R ./.codex/skills/evo ~/.codex/skills/
 cp -R ./.codex/skills/prolog-runner ~/.codex/skills/
 ```
 
+Restart Codex CLI after installing or updating skills.
+
 #### Step 3: Confirm install
 
-After installing, you should have:
+For a project-level install, the target project directory should contain:
 
 ```text
 .codex/skills/
@@ -216,6 +195,8 @@ If command/tool execution is not available in your Codex environment, EVO should
 
 ### Manual usage (debugging / offline)
 
+From the target project directory, run one of the following:
+
 Run a KB file and enable an assumption:
 
 ```bash
@@ -236,42 +217,21 @@ Claude Code uses the same EVO workflow via project-level or global-level install
 
 ### Installation (Claude Code)
 
+Claude Code uses the same local `prolog-runner` integration, so SWI-Prolog must also be installed and available on `PATH`.
+If you have not already done that, follow Step 1 in the Codex installation section above.
+
 #### Project-level install (recommended)
 
-From this repo, keep or copy these into your project root:
+For a project-level install from this repo, use the `install` scripts in the `Install and Sync Scripts` section below.
+That is the canonical project-level setup path and keeps the Claude and Codex layouts aligned.
+
+Expected project-level result inside the target project directory:
 
 - `.claude/skills/evo/`
 - `.claude/skills/prolog-runner/`
 - `.claude/agents/evo.md`
 
 EVO's harness runner (`scripts/evo_run.py`) expects `prolog-runner` to be installed in the **same** `skills/` directory tree (so it can find `prolog-runner/scripts/run_prolog.py`).
-
-Example copy commands:
-
-- Windows (PowerShell, run from `$env:USERPROFILE\\evo`):
-
-```powershell
-$repo = Join-Path $env:USERPROFILE "evo"
-Set-Location $repo
-New-Item -ItemType Directory -Force -Path ".\.claude\skills" | Out-Null
-New-Item -ItemType Directory -Force -Path ".\.claude\agents" | Out-Null
-Copy-Item -Recurse -Force ".\.claude\skills\evo" ".\.claude\skills\"
-Copy-Item -Recurse -Force ".\.claude\skills\prolog-runner" ".\.claude\skills\"
-Copy-Item -Force ".\.claude\agents\evo.md" ".\.claude\agents\evo.md"
-```
-
-- macOS/Linux (bash/zsh, run from `~/evo`):
-
-```bash
-REPO=~/evo
-cd "$REPO"
-mkdir -p ./.claude/skills ./.claude/agents
-cp -R ./.claude/skills/evo ./.claude/skills/
-cp -R ./.claude/skills/prolog-runner ./.claude/skills/
-cp ./.claude/agents/evo.md ./.claude/agents/evo.md
-```
-
-Restart Claude Code after installing/updating skills and agents.
 
 #### Global-level install (optional)
 
@@ -289,7 +249,7 @@ From this repo, copy:
 - `.claude/skills/evo/` and `.claude/skills/prolog-runner/` into your global skills directory
 - `.claude/agents/evo.md` into your global agents directory
 
-Example copy commands:
+Example copy commands from the EVO repo:
 
 - Windows (PowerShell, run from `$env:USERPROFILE\\evo`):
 
@@ -313,6 +273,8 @@ cp -R ./.claude/skills/evo ~/.claude/skills/
 cp -R ./.claude/skills/prolog-runner ~/.claude/skills/
 cp ./.claude/agents/evo.md ~/.claude/agents/evo.md
 ```
+
+Restart Claude Code after installing or updating skills and agents.
 
 ### Files and how they work
 
@@ -339,21 +301,29 @@ Use the repo scripts in `scripts/` to avoid manual copy drift.
 
 - Purpose: copy canonical skill content from `skills/evo/` plus `skills/prolog-runner/` into project `.claude` and/or `.codex` folders.
 - Also copies the Claude sub-agent file (`skills/evo/agents/claude.md`) to `.claude/agents/evo.md` when the install target includes Claude.
+- Use these scripts when installing EVO into a target project from this repo.
+- Use `install` for project-level setup. For global installs, use the manual copy commands in the Codex or Claude sections above.
 
 Both scripts take the same two inputs:
 - install mode: `codex`, `claude`, or `both`
 - project root: the directory where `.claude/` and/or `.codex/` will be created
 
-The script itself is run from the EVO repo, but it installs files into the target project root.
-If you use the examples below as written, first change into the target project directory so `Get-Location` / `$PWD` points at the correct destination.
+The script is run from the EVO repo, but it installs files into the target project root.
+If you use the examples below as written, first change into the target project directory so `Get-Location` and `$PWD` resolve to the correct destination.
 
 Interface forms:
 - PowerShell: `install.ps1 -Target <install_mode> -ProjectRoot <project_root>`
 - Bash: `install.sh <install_mode> <project_root>`
 
+Recommended project-level workflow:
+1. Change into the target project directory.
+2. Run the install script from the EVO repo path.
+3. Restart Codex CLI and/or Claude Code so the new files are loaded.
+
 PowerShell:
 
 ```powershell
+# Run from the target project directory
 $evoRepo = Join-Path $env:USERPROFILE "evo"
 $projectRoot = (Get-Location).Path
 powershell -ExecutionPolicy Bypass -File (Join-Path $evoRepo "scripts\\install.ps1") `
@@ -364,6 +334,7 @@ powershell -ExecutionPolicy Bypass -File (Join-Path $evoRepo "scripts\\install.p
 Bash:
 
 ```bash
+# Run from the target project directory
 EVO_REPO=~/evo
 PROJECT_ROOT="$PWD"
 bash "$EVO_REPO/scripts/install.sh" both "$PROJECT_ROOT"
@@ -378,6 +349,7 @@ Targets:
 
 - Purpose: re-copy canonical `skills/evo/` into both `.claude/skills/evo/` and `.codex/skills/evo/`, and refresh `.claude/agents/evo.md`.
 - Use this after any change under `skills/evo/`.
+- `sync` is for this EVO repo itself, not for installing into a separate target project.
 
 PowerShell:
 
