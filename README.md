@@ -51,6 +51,55 @@ At a high level, EVO turns your task into a Prolog knowledge base (KB), derives 
 5. **Classify** the outcome (`SOLVED`/`CANDIDATE`/`MAPPED`) and avoid uniqueness claims without proof.
 6. **Respond in natural language** with assumptions and (if applicable) a `Sources:` section.
 
+## Install Scripts (recommended project setup)
+
+Use the repo `install` scripts in `scripts/` for project-level setup. This is the recommended way to install EVO into a target project from this repo.
+
+- Purpose: copy canonical skill content from `skills/evo/` plus `skills/prolog-runner/` into project `.claude` and/or `.codex` folders.
+- Also copies the Claude sub-agent file (`skills/evo/agents/claude.md`) to `.claude/agents/evo.md` when the install target includes Claude.
+- Use `install` for project-level setup. For global installs, use the manual copy commands in the Codex or Claude sections below.
+
+Both scripts take the same two inputs:
+- install mode: `codex`, `claude`, or `both`
+- project root: the directory where `.claude/` and/or `.codex/` will be created
+
+The script is run from the EVO repo, but it installs files into the target project root.
+If you use the examples below as written, first change into the target project directory so `Get-Location` and `$PWD` resolve to the correct destination.
+
+Interface forms:
+- PowerShell: `install.ps1 -Target <install_mode> -ProjectRoot <project_root>`
+- Bash: `install.sh <install_mode> <project_root>`
+
+Recommended project-level workflow:
+1. Change into the target project directory.
+2. Run the install script from the EVO repo path.
+3. Restart Codex CLI and/or Claude Code so the new files are loaded.
+
+PowerShell:
+
+```powershell
+# Run from the target project directory
+$evoRepo = Join-Path $env:USERPROFILE "evo"
+$projectRoot = (Get-Location).Path
+powershell -ExecutionPolicy Bypass -File (Join-Path $evoRepo "scripts\\install.ps1") `
+  -Target both `
+  -ProjectRoot $projectRoot
+```
+
+Bash:
+
+```bash
+# Run from the target project directory
+EVO_REPO=~/evo
+PROJECT_ROOT="$PWD"
+bash "$EVO_REPO/scripts/install.sh" both "$PROJECT_ROOT"
+```
+
+Targets:
+- `codex`: install only `.codex` skill folders
+- `claude`: install only `.claude` skill folders + `.claude/agents/evo.md`
+- `both`: install both layouts
+
 ## Codex CLI (OpenAI) implementation
 
 In Codex CLI, EVO is implemented as a skill folder plus an agent definition and a small Prolog execution toolchain.
@@ -85,7 +134,7 @@ You must have **both** skill folders installed for the automated EVO workflow:
 - `evo` (the workflow + harness runner)
 - `prolog-runner` (executes `swipl` and returns JSON bindings)
 
-For a project-level install from this repo, use the `install` scripts in the `Install and Sync Scripts` section below.
+For a project-level install from this repo, use the recommended `Install Scripts` section above.
 That is the canonical project-level setup path and avoids manual copy drift.
 
 Expected project-level result inside the target project directory:
@@ -222,7 +271,7 @@ If you have not already done that, follow Step 1 in the Codex installation secti
 
 #### Project-level install (recommended)
 
-For a project-level install from this repo, use the `install` scripts in the `Install and Sync Scripts` section below.
+For a project-level install from this repo, use the recommended `Install Scripts` section above.
 That is the canonical project-level setup path and keeps the Claude and Codex layouts aligned.
 
 Expected project-level result inside the target project directory:
@@ -293,57 +342,9 @@ Restart Claude Code after installing or updating skills and agents.
 
 Claude Code can follow the EVO workflow instructions and (when command execution is enabled) can also run the same local harness automatically by invoking `scripts/evo_run.py`. If command/tool execution is disabled, it should ask you to run the command manually and provide the JSON output.
 
-## Install and Sync Scripts
+## Sync Scripts
 
-Use the repo scripts in `scripts/` to avoid manual copy drift.
-
-### `install` scripts (initial setup)
-
-- Purpose: copy canonical skill content from `skills/evo/` plus `skills/prolog-runner/` into project `.claude` and/or `.codex` folders.
-- Also copies the Claude sub-agent file (`skills/evo/agents/claude.md`) to `.claude/agents/evo.md` when the install target includes Claude.
-- Use these scripts when installing EVO into a target project from this repo.
-- Use `install` for project-level setup. For global installs, use the manual copy commands in the Codex or Claude sections above.
-
-Both scripts take the same two inputs:
-- install mode: `codex`, `claude`, or `both`
-- project root: the directory where `.claude/` and/or `.codex/` will be created
-
-The script is run from the EVO repo, but it installs files into the target project root.
-If you use the examples below as written, first change into the target project directory so `Get-Location` and `$PWD` resolve to the correct destination.
-
-Interface forms:
-- PowerShell: `install.ps1 -Target <install_mode> -ProjectRoot <project_root>`
-- Bash: `install.sh <install_mode> <project_root>`
-
-Recommended project-level workflow:
-1. Change into the target project directory.
-2. Run the install script from the EVO repo path.
-3. Restart Codex CLI and/or Claude Code so the new files are loaded.
-
-PowerShell:
-
-```powershell
-# Run from the target project directory
-$evoRepo = Join-Path $env:USERPROFILE "evo"
-$projectRoot = (Get-Location).Path
-powershell -ExecutionPolicy Bypass -File (Join-Path $evoRepo "scripts\\install.ps1") `
-  -Target both `
-  -ProjectRoot $projectRoot
-```
-
-Bash:
-
-```bash
-# Run from the target project directory
-EVO_REPO=~/evo
-PROJECT_ROOT="$PWD"
-bash "$EVO_REPO/scripts/install.sh" both "$PROJECT_ROOT"
-```
-
-Targets:
-- `codex`: install only `.codex` skill folders
-- `claude`: install only `.claude` skill folders + `.claude/agents/evo.md`
-- `both`: install both layouts
+Use the repo `sync` scripts in `scripts/` to avoid manual copy drift inside this EVO repo.
 
 ### `sync` scripts (after editing canonical files)
 
