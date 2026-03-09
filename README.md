@@ -21,35 +21,39 @@ EVO is a Prolog-first reasoning workflow packaged as skills for **Codex CLI (Ope
 
 ## What EVO does
 
-EVO is a strict verification protocol for coding/reasoning tasks. The `default_prompt` in `.codex/skills/evo/agents/openai.yaml` forces the agent to treat "reasoning" as **derivation** (not explanation) and to follow a mandatory Prolog-first workflow.
+EVO is a Prolog-first reasoning workflow packaged as a prompt-driven agent plus a small local verification toolchain. Its `default_prompt` in `.codex/skills/evo/agents/openai.yaml` tells the agent to treat reasoning as derivation rather than free-form explanation, while the local runner and harness provide concrete proof tracing and consistency checks.
 
-At a high level, EVO turns your task into a Prolog knowledge base (KB), derives conclusions with proofs, verifies the KB is consistent, stress-tests which assumptions the conclusions depend on, and only then produces a natural-language answer.
+At a high level, EVO is designed to help an agent formalize a task as a Prolog knowledge base (KB), derive `conclusion(...)` answers with proof traces, check whether the KB is inconsistent, and optionally test whether conclusions survive dropping named assumptions. The strictest parts of the workflow come from the prompt; the executable guarantees come from the harness and runner.
 
-### The essence of EVO (what it enforces)
+### What is implemented
 
-- **Reasoning = derivation with proofs**: a task is only "solved" if a `conclusion(...)` can be derived from facts and rules with a proof trace; listing/guessing/explaining without derivation is not accepted.
-- **No "from memory" authority**: conclusions must be grounded in tool execution outputs (and when Prolog is used, grounded in Prolog derivations), not intuition/training-data recall.
-- **Assumptions are first-class**: any inference that is not strictly entailed must be declared as an assumption; hidden inference bridges are forbidden.
-- **Consistency before answers**: EVO must check for contradictions/constraint violations (`inconsistent`) and never answer from an inconsistent KB.
-- **Assumption-dependence testing is mandatory**: for each key conclusion, EVO re-derives it while disabling assumptions one-by-one, then labels conclusions as robust vs assumption-dependent.
-- **Tools are subordinate to Prolog**: other tools may be used only to acquire missing facts or primitive computations requested by the Prolog reasoning; they must not replace the derivation step.
-- **Strict outcome labeling**: every result must be labeled `SOLVED`, `CANDIDATE`, or `MAPPED`. Uniqueness claims are disallowed unless proven (e.g., exhaustive search or a completeness proof).
-- **Human-readable final output**: even though EVO reasons in Prolog internally, it must output plain English (no raw Prolog) and include a `Sources:` list when it used external URLs.
+- **Prompt-level workflow policy**: the EVO prompt instructs the agent to use Prolog-first derivation, make assumptions explicit, avoid unsupported "from memory" claims, classify outcomes, and respond in natural language.
+- **Proof tracing**: the harness implements `prove/2` and `conclusion_with_proof/2`, so conclusions can be returned with proof steps.
+- **Consistency checks**: the harness implements `inconsistent/0` based on declared constraints and contradictions.
+- **Optional assumption-drop testing**: the runner can re-check whether derived conclusions survive when CLI-provided assumptions are removed one at a time.
+- **Lightweight solved gate**: the harness includes `solved/2`, but it is intentionally minimal: it checks only whether a conclusion is derivable with a proof and the KB is consistent.
 
-### What it achieves
-* logical reasoning for AI Agents
-* surfaces all assumptions
-* proof traces for all conclusions
-* reduces hallucinations
+### What EVO does not hard-enforce in code
 
-### The mandatory workflow (condensed)
+- **Automatic task formalization**: the repo does not include a compiler from arbitrary natural-language tasks into a KB. The agent is expected to do that work.
+- **Complete assumption discovery**: assumption testing only covers assumptions explicitly passed to `evo_run.py` with `--assumption`.
+- **Full solved/candidate/mapped certification**: those stricter labels are described in the prompt, but the harness itself does not prove formalization completeness or uniqueness.
+- **Answer blocking on inconsistency**: the runner reports inconsistency and conclusions in the same JSON payload; the agent is expected to treat inconsistency as a stop/report condition.
 
-1. **Formalize** the task into a Prolog KB: observations/claims/premises, inference rules, explicit assumptions, and constraints/contradictions, plus a `conclusion/1` goal.
-2. **Derive** conclusions as `conclusion(Answer)` together with a proof trace.
-3. **Check consistency** (`inconsistent`) and repair/report if inconsistent.
-4. **Test assumption-dependence** by disabling assumptions and re-deriving conclusions.
-5. **Classify** the outcome (`SOLVED`/`CANDIDATE`/`MAPPED`) and avoid uniqueness claims without proof.
-6. **Respond in natural language** with assumptions and (if applicable) a `Sources:` section.
+### What it achieves in practice
+
+- gives the agent a structured Prolog-first reasoning protocol
+- makes assumptions easier to expose and test explicitly
+- provides proof traces for derived conclusions
+- reduces unsupported narrative answers by grounding reasoning in tool outputs
+
+### The implemented workflow (condensed)
+
+1. **Prepare a KB** with observations/claims/premises, rules, optional assumptions, optional constraints/contradictions, and a `conclusion/1` goal.
+2. **Run the harness** to derive `conclusion(Answer)` values together with proof traces.
+3. **Check consistency** with `inconsistent`.
+4. **Optionally test assumption dependence** by passing named assumptions and re-running with them removed one by one.
+5. **Have the agent interpret the results** according to the EVO prompt and present them in natural language.
 
 ## Install Scripts (recommended project setup)
 
