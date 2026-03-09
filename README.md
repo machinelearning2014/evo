@@ -73,6 +73,26 @@ In practice, EVO helps an agent take a task, represent it as a Prolog knowledge 
 
 Use the repo `install` scripts in `scripts/` for project-level setup. This is the recommended way to install EVO into a target project from this repo.
 
+### Prerequisite: clone this repo first
+
+Before you can run the install scripts or copy files manually, clone this repository to a local directory.
+
+PowerShell:
+
+```powershell
+Set-Location $env:USERPROFILE
+git clone https://github.com/machinelearning2014/evo.git
+```
+
+Bash:
+
+```bash
+cd ~
+git clone https://github.com/machinelearning2014/evo.git
+```
+
+The examples below assume the repo is available locally at `~/evo` on macOS/Linux or `$env:USERPROFILE\\evo` on Windows.
+
 - Purpose: copy canonical skill content from `skills/evo/` plus `skills/prolog-runner/` into project `.claude` and/or `.codex` folders.
 - Also copies the Claude sub-agent file (`skills/evo/agents/claude.md`) to `.claude/agents/evo.md` when the install target includes Claude.
 - Use `install` for project-level setup. For global installs, use the manual copy commands in the Codex or Claude sections below.
