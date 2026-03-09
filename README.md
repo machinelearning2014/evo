@@ -23,7 +23,7 @@ EVO is a Prolog-first reasoning workflow packaged as skills for **Codex CLI (Ope
 
 EVO is a skill that gives Codex or Claude a Prolog-first reasoning workflow plus the local files needed to execute that workflow. Functionally, it does three things:
 
-- **It supplies the EVO agent behavior** through the agent prompt in `.codex/skills/evo/agents/openai.yaml` and the equivalent Claude files, telling the model to reason by derivation, make assumptions explicit, check consistency, and translate results into plain language.
+- **It supplies the EVO agent behavior** through `.codex/skills/evo/agents/openai.yaml` for Codex and `skills/evo/agents/claude.md` for Claude (installed as `.claude/agents/evo.md`), telling the model to reason by derivation, make assumptions explicit, check consistency, and translate results into plain language.
 - **It supplies a reusable Prolog harness** in `.codex/skills/evo/references/evo_harness.pl`, which defines the proof-tracing and consistency predicates the reasoning workflow depends on.
 - **It supplies a runnable helper** in `.codex/skills/evo/scripts/evo_run.py`, which loads the harness, combines it with a task KB, calls `prolog-runner`, and returns structured JSON with conclusions, proofs, and assumption-dependence results.
 
@@ -41,7 +41,7 @@ In practice, EVO helps an agent take a task, represent it as a Prolog knowledge 
 ### How it operates (end-to-end)
 
 1. **The CLI loads the EVO skill files.**
-   Codex reads `.codex/skills/evo/SKILL.md` and `.codex/skills/evo/agents/openai.yaml`. Claude uses the corresponding `.claude` copies. This gives the model the EVO workflow instructions and points it at the local runner and harness files.
+   Codex reads `.codex/skills/evo/SKILL.md` and `.codex/skills/evo/agents/openai.yaml`. Claude uses `.claude/skills/evo/SKILL.md` together with the EVO agent file at `.claude/agents/evo.md`, which is copied from the canonical source `skills/evo/agents/claude.md`. This gives the model the EVO workflow instructions and points it at the local runner and harness files.
 
 2. **The task is expressed as a Prolog KB.**
    The agent or user writes a KB containing facts and rules for the task. In EVO terms, that usually means some combination of `observation/1`, `claim/1`, `premise/1`, `rule/3`, `assumption/2`, `constraint/2`, `contradiction/2`, and a `conclusion/1` goal. The starter file in `references/template_kb.pl` shows the expected shape.
